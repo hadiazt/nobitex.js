@@ -1,4 +1,3 @@
-const { price } = require('./src/main.js')
+const nobitex = require('./src/main')
 
-
-price().then(res => console.log(res))
+nobitex.price({type:''}).then(res => console.log(res))
