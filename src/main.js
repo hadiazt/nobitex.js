@@ -1,1 +1,1 @@
-exports.price = require('./components/price.module');
+exports.price = require('./modules/Price.module')
