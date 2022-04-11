@@ -1,6 +1,6 @@
 const nobitex = require('./src/main')
 
-nobitex.price({type:''}).then(res => console.log(res))
+nobitex.price({type:'BTCIRT'}).then(res => console.log(res))
 // BTCIRT, ETHIRT, LTCIRT, XRPIRT, BCHIRT, BNBIRT, EOSIRT
 // XLMIRT, ETCIRT, TRXIRT, DOGEIRT, UNIIRT, DAIIRT, LINKIRT
 // DOTIRT, AAVEIRT, ADAIRT, SHIBIRT, USDTIRT, BTCUSDT, ETHUSDT
