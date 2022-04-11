@@ -1,0 +1,22 @@
+{
+  "name": "nobitex.js",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hadiazt/nobitex.js.git"
+  },
+  "author": "hadi.az",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/hadiazt/nobitex.js/issues"
+  },
+  "homepage": "https://github.com/hadiazt/nobitex.js#readme",
+  "dependencies": {
+    "axios": "^0.26.1"
+  }
+}
