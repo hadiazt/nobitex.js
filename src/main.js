@@ -1,0 +1,1 @@
+exports.price = require('./components/price.module');
