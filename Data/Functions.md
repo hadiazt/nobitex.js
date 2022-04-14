@@ -36,3 +36,4 @@ nobitex.global().then(res => console.log(res))
 const nobitex = require(nobitex.js)
 nobitex.account({ token: '' }).then(res => console.log(res))
 ```
+<h5>Your Nobitex Account Sercet <a href="https://nobitex.ir/app/settings/">Token</a></h5>
