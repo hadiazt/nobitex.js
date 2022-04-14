@@ -6,24 +6,23 @@
 nobitex.price({type:''}).then(res => console.log(res))
 
 ```
-<a href="https://github.com/hadiazt/nobitex.js/blob/main/Data/Objects.md#--price--trade-functions--">Objects</a>
+<h5><a href="https://github.com/hadiazt/nobitex.js/blob/main/Data/Objects.md#--price--trade-functions--">Objects</a></h5>
 <h2>Trades :</h2>
 
 ```js
 nobitex.trades({ type: '' }).then(res => console.log(res))
 ```
-<a href="https://github.com/hadiazt/nobitex.js/blob/main/Data/Objects.md#--price--trade-functions--">Objects</a>
+<h5><a href="https://github.com/hadiazt/nobitex.js/blob/main/Data/Objects.md#--price--trade-functions--">Objects</a></h5>
 
 
-<a>market</a>
-/* From Options : */
-// rls, btc, eth, ltc, usdt, xrp, bch, bnb, 
-// eos, xlm, etc, trx, pmn, doge, uni, dai, 
-// link, dot, aave, ada, shib
+<h2>Market :</h2>
 
-/* To Options : */
-// usdt , rls
+```js
+nobitex.market({from:'',to:''}).then(res => console.log(res))
 
-<a>global</a>
+```
+<a href="https://github.com/hadiazt/nobitex.js/blob/main/Data/Objects.md#--market-function--">Objects</a>
 
-<a>account</a>
+<h2>Global : </h2>
+
+<h2>Account : </h2>
