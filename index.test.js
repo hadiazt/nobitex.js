@@ -3,15 +3,3 @@ const nobitex = require('./src/main')
 const { token } = require('./file.json')
 
 
-nobitex.market({from:'btc',to:'rls'}).then(res => console.log(res))
-/* From Options : */
-// rls, btc, eth, ltc, usdt, xrp, bch, bnb, 
-// eos, xlm, etc, trx, pmn, doge, uni, dai, 
-// link, dot, aave, ada, shib
-
-/* To Options : */
-// usdt , rls
-
-nobitex.global().then(res => console.log(res))
-
-nobitex.account({ token: token }).then(res => console.log(res))
