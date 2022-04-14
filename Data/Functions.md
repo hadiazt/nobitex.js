@@ -5,7 +5,6 @@
 ```js
 const nobitex = require(nobitex.js)
 nobitex.price({type:''}).then(res => console.log(res))
-
 ```
 <h5><a href="https://github.com/hadiazt/nobitex.js/blob/main/Data/Objects.md#--price--trade-functions--">Objects</a></h5>
 <h2>Trades :</h2>
@@ -22,7 +21,6 @@ nobitex.trades({ type: '' }).then(res => console.log(res))
 ```js
 const nobitex = require(nobitex.js)
 nobitex.market({from:'',to:''}).then(res => console.log(res))
-
 ```
 <a href="https://github.com/hadiazt/nobitex.js/blob/main/Data/Objects.md#--market-function--">Objects</a>
 
