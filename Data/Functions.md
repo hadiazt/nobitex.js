@@ -24,6 +24,8 @@ nobitex.market({from:'',to:''}).then(res => console.log(res))
 <a href="https://github.com/hadiazt/nobitex.js/blob/main/Data/Objects.md#--market-function--">Objects</a>
 
 <h2>Global : </h2>
+    
 ```js
-
+nobitex.global().then(res => console.log(res))
+```
 <h2>Account : </h2>
