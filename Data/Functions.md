@@ -1,4 +1,4 @@
-<h1 align="center">nobitex.js help Menu</h1>
+<h1 align="center">nobitex.js Function Menu</h1>
 
 <h2>Price :</h2>
 
