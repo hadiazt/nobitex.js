@@ -6,14 +6,13 @@
 nobitex.price({type:''}).then(res => console.log(res))
 
 ```
-
+<a href="https://github.com/hadiazt/nobitex.js/blob/main/Data/Objects.md#--price--trade-functions--">Objects</a>
 <h2>Trades :</h2>
 
 ```js
 nobitex.trades({ type: '' }).then(res => console.log(res))
 ```
-Objects
-/* Visit  https://github.com/hadiazt/nobitex.js/blob/main/Data/Objects.md#--price--trade-functions-- From Seeing Objects*/
+<a href="https://github.com/hadiazt/nobitex.js/blob/main/Data/Objects.md#--price--trade-functions--">Objects</a>
 
 
 <a>market</a>
