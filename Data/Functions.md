@@ -3,6 +3,7 @@
 <h2>Price :</h2>
 
 ```js
+const nobitex = require(nobitex.js)
 nobitex.price({type:''}).then(res => console.log(res))
 
 ```
@@ -10,6 +11,7 @@ nobitex.price({type:''}).then(res => console.log(res))
 <h2>Trades :</h2>
 
 ```js
+const nobitex = require(nobitex.js)
 nobitex.trades({ type: '' }).then(res => console.log(res))
 ```
 <h5><a href="https://github.com/hadiazt/nobitex.js/blob/main/Data/Objects.md#--price--trade-functions--">Objects</a></h5>
@@ -18,6 +20,7 @@ nobitex.trades({ type: '' }).then(res => console.log(res))
 <h2>Market :</h2>
 
 ```js
+const nobitex = require(nobitex.js)
 nobitex.market({from:'',to:''}).then(res => console.log(res))
 
 ```
@@ -26,10 +29,12 @@ nobitex.market({from:'',to:''}).then(res => console.log(res))
 <h2>Global : </h2>
 
 ```js
+const nobitex = require(nobitex.js)
 nobitex.global().then(res => console.log(res))
 ```
 <h2>Account : </h2>
 
 ```js
-nobitex.account({ token: token }).then(res => console.log(res))
+const nobitex = require(nobitex.js)
+nobitex.account({ token: '' }).then(res => console.log(res))
 ```
