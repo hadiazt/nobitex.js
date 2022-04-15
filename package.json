@@ -1,6 +1,6 @@
 {
   "name": "nobitex.js",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "NPM Module For www.nobitex.ir (Crypto Trading Website)",
   "main": "./src/main.js",
   "scripts": {
@@ -18,5 +18,10 @@
   "homepage": "https://github.com/hadiazt/nobitex.js#readme",
   "dependencies": {
     "axios": "^0.26.1"
-  }
+  },
+  "keywords": [
+    "cryptocurrency",
+    "cryptocoins",
+    "crypto"
+  ]
 }
