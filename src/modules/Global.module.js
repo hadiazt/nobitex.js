@@ -11,4 +11,3 @@ module.exports = () => {
         }).catch(e => { console.log(e.toJSON().message + '\nMake sure entered a correct type') });
     });
 }
-
