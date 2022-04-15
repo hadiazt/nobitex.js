@@ -10,7 +10,13 @@ module.exports = ({ token }) => {
     return new Promise((resolve) => {
         axios(config).then(data => {
             const req = data.data.wallets;
-            resolve(req)
+            const a = []
+            req.forEach(r => {
+                if (r.depositAddress) {
+                    a.push(r)
+                }
+            });
+            resolve(a)
         }).catch(e => { console.log(e) });
     });
 }
