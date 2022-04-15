@@ -13,12 +13,7 @@ module.exports = ({ type }) => {
                 const price = trade.price
                 const volume = trade.volume
                 const type = trade.type
-                const x = {
-                    time,
-                    price,
-                    volume,
-                    type
-                }
+                const x = { time, price, volume, type }
                 res.push(x)
             })
             resolve(res)
