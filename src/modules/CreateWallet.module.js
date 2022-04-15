@@ -11,11 +11,7 @@ module.exports = ({ token, type }) => {
     return new Promise((resolve) => {
         axios(config).then(data => {
             const req = data.data;
-            resolve({
-                Status:req.status,
-                Address: req.address,
-                Tag: req.tag
-            })
+            resolve({ Status: req.status, Address: req.address, Tag: req.tag })
         }).catch(e => { console.log(e) });
     });
 }
