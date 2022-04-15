@@ -3,14 +3,14 @@
 <h2>Price :</h2>
 
 ```js
-const nobitex = require(nobitex.js)
+const nobitex = require('nobitex.js')
 nobitex.price({ type: '' }).then(res => console.log(res))
 ```
 <h6>Type <a href="https://github.com/hadiazt/nobitex.js/blob/main/Data/Objects.md#--price--trade-functions--">Objects</a></h6>
 <h2>Trades :</h2>
 
 ```js
-const nobitex = require(nobitex.js)
+const nobitex = require('nobitex.js')
 nobitex.trades({ type: '' }).then(res => console.log(res))
 ```
 <h6>Type <a href="https://github.com/hadiazt/nobitex.js/blob/main/Data/Objects.md#--price--trade-functions--">Objects</a></h6>
@@ -19,7 +19,7 @@ nobitex.trades({ type: '' }).then(res => console.log(res))
 <h2>Market :</h2>
 
 ```js
-const nobitex = require(nobitex.js)
+const nobitex = require('nobitex.js')
 nobitex.market({ from: '', to: '' }).then(res => console.log(res))
 ```
 <h6>From & To <a href="https://github.com/hadiazt/nobitex.js/blob/main/Data/Objects.md#--market-function--">Objects</a></h6>
@@ -27,13 +27,13 @@ nobitex.market({ from: '', to: '' }).then(res => console.log(res))
 <h2>Global : </h2>
 
 ```js
-const nobitex = require(nobitex.js)
+const nobitex = require('nobitex.js')
 nobitex.global().then(res => console.log(res))
 ```
 <h2>Account : </h2>
 
 ```js
-const nobitex = require(nobitex.js)
+const nobitex = require('nobitex.js')
 nobitex.account({ token: '' }).then(res => console.log(res))
 ```
 <h6>Your Nobitex Account Sercet <a href="https://nobitex.ir/app/settings/">Token</a></h6>
@@ -41,7 +41,7 @@ nobitex.account({ token: '' }).then(res => console.log(res))
 <h2>CreateWallet : </h2>
 
 ```js
-const nobitex = require(nobitex.js)
+const nobitex = require('nobitex.js')
 nobitex.CreateWallet({ token: '', type: '' }).then(res => console.log(res))
 ```
 <h6>Your Nobitex Account Sercet <a href="https://nobitex.ir/app/settings/">Token</a></h6>
@@ -50,7 +50,7 @@ nobitex.CreateWallet({ token: '', type: '' }).then(res => console.log(res))
 <h2> AddCard : </h2>
 
 ```js
-const nobitex = require(nobitex.js)
+const nobitex = require('nobitex.js')
 nobitex.AddCard({ token: '', CardNumber: '', BankName: '' }).then(res => console.log(res))
 ```
 <h6>Your Nobitex Account Sercet <a href="https://nobitex.ir/app/settings/">Token</a></h6>
@@ -60,7 +60,7 @@ nobitex.AddCard({ token: '', CardNumber: '', BankName: '' }).then(res => console
 <h2> AddBankAccount : </h2>
 
 ```js
-const nobitex = require(nobitex.js)
+const nobitex = require('nobitex.js')
 nobitex.AddBankAccount({ token: '', CardNumber: '', Shaba: '', CardName: '' }).then(res => console.log(res))
 ```
 <h6>Your Nobitex Account Sercet <a href="https://nobitex.ir/app/settings/">Token</a></h6>
@@ -71,7 +71,7 @@ nobitex.AddBankAccount({ token: '', CardNumber: '', Shaba: '', CardName: '' }).t
 <h2> AccountLimitations : </h2>
 
 ```js
-const nobitex = require(nobitex.js)
+const nobitex = require('nobitex.js')
 nobitex.AccountLimitations({ token: '' }).then(res => console.log(res))
 ```
 <h6>Your Nobitex Account Sercet <a href="https://nobitex.ir/app/settings/">Token</a></h6>
