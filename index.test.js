@@ -1,5 +1,5 @@
 const nobitex = require('./src/main')
-// const nobitex = require(nobitex.js)
+// const nobitex = require('nobitex.js')
 const { token } = require('./file.json')
 
 
@@ -11,3 +11,4 @@ const { token } = require('./file.json')
 // nobitex.CreateWallet({ token, type: '' }).then(res => console.log(res))
 // nobitex.AddCard({ token, CardNumber: '', BankName: '' }).then(res => console.log(res))
 // nobitex.AddBankAccount({ token, CardNumber: '', Shaba: '', CardName: '' }).then(res => console.log(res))
+// nobitex.AccountLimitations({ token }).then(res => console.log(res))
