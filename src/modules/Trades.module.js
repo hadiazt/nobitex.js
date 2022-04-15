@@ -17,6 +17,6 @@ module.exports = ({ type }) => {
                 res.push(x)
             })
             resolve(res)
-        }).catch(e => { console.log(e.toJSON().message + '\nMake sure entered a correct type') });
+        }).catch(e => { console.log(e?.response?.data?.detail) });
     });
 }
