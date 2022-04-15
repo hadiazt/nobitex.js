@@ -20,7 +20,7 @@ nobitex.trades({ type: '' }).then(res => console.log(res))
 
 ```js
 const nobitex = require(nobitex.js)
-nobitex.market({ from: '', to: ''}).then(res => console.log(res))
+nobitex.market({ from: '', to: '' }).then(res => console.log(res))
 ```
 <h6>From & To <a href="https://github.com/hadiazt/nobitex.js/blob/main/Data/Objects.md#--market-function--">Objects</a></h6>
 
