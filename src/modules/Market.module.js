@@ -7,8 +7,8 @@ module.exports = ({ from, to }) => {
     };
     return new Promise((resolve) => {
         axios(config).then(data => {
-            const req = data.data.stats;
-            resolve(req)
-        }).catch(e => { console.log(e.toJSON().message + '\nMake sure entered a correct type') });
+            const req = data.data.stats;        
+            resolve(JSON.stringify(req[from + '-' + to]))
+        }).catch(e => { console.log(e?.response?.data?.detail) });
     });
 }
