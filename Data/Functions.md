@@ -1,4 +1,4 @@
-<h1 align="center">nobitex.js Function Menu</h1>
+<h1 align="center">Market Information (General)</h1>
 
 <h2>Price :</h2>
 
@@ -30,6 +30,11 @@ nobitex.market({ from: '', to: '' }).then(res => console.log(res))
 const nobitex = require('nobitex.js')
 nobitex.global().then(res => console.log(res))
 ```
+<h1 align="center">Trading In The Market
+</h1>
+SOON . . .
+<h1 align="center">User Information</h1>
+
 <h2>Account : </h2>
 
 ```js
@@ -76,6 +81,7 @@ nobitex.AccountLimitations({ token: '' }).then(res => console.log(res))
 ```
 <h6>Your Nobitex Account Sercet <a href="https://nobitex.ir/app/settings/">Token</a></h6>
 
+<h1 align="center">User financial information</h1>
 <h2> AccountWallets : </h2>
 
 ```js
@@ -83,3 +89,5 @@ const nobitex = require('nobitex.js')
 nobitex.AccountWallets({ token: '' }).then(res => console.log(res))
 ```
 <h6>Your Nobitex Account Sercet <a href="https://nobitex.ir/app/settings/">Token</a></h6>
+
+<h1 align="center">Security</h1>
