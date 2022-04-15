@@ -42,7 +42,7 @@ nobitex.account({ token: '' }).then(res => console.log(res))
 
 ```js
 const nobitex = require(nobitex.js)
-nobitex.CreateWallet({ token, type: '' }).then(res => console.log(res))
+nobitex.CreateWallet({ token: '', type: '' }).then(res => console.log(res))
 ```
 <h5>Your Nobitex Account Sercet <a href="https://nobitex.ir/app/settings/">Token</a></h5>
 <h5>Type <a href="https://github.com/hadiazt/nobitex.js/blob/main/Data/Objects.md#--createwallet-function--">Objects</a></h5>
@@ -51,7 +51,7 @@ nobitex.CreateWallet({ token, type: '' }).then(res => console.log(res))
 
 ```js
 const nobitex = require(nobitex.js)
-nobitex.AddCard({ token, CardNumber: '', BankName: '' }).then(res => console.log(res))
+nobitex.AddCard({ token: '', CardNumber: '', BankName: '' }).then(res => console.log(res))
 ```
 <h5>Your Nobitex Account Sercet <a href="https://nobitex.ir/app/settings/">Token</a></h5>
 <h5>CardNumber : Your Card Number Witout Space </h5>
