@@ -61,7 +61,7 @@ nobitex.AddCard({ token: '', CardNumber: '', BankName: '' }).then(res => console
 
 ```js
 const nobitex = require(nobitex.js)
-nobitex.AddBankAccount({ token, CardNumber: '', Shaba: '', CardName: '' }).then(res => console.log(res))
+nobitex.AddBankAccount({ token: '', CardNumber: '', Shaba: '', CardName: '' }).then(res => console.log(res))
 ```
 <h6>Your Nobitex Account Sercet <a href="https://nobitex.ir/app/settings/">Token</a></h6>
 <h6>CardNumber : Your Card Number Witout Space </h6>
