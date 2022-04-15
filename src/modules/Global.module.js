@@ -8,6 +8,6 @@ module.exports = () => {
         axios(config).then(data => {
             const req = data.data.markets.binance;
             resolve(req)
-        }).catch(e => { console.log(e.toJSON().message + '\nMake sure entered a correct type') });
+        }).catch(e => { console.log(e?.response?.data?.detail) });
     });
 }
