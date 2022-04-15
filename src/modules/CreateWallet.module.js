@@ -15,4 +15,3 @@ module.exports = ({ token, type }) => {
         }).catch(e => { console.log(e) });
     });
 }
-
