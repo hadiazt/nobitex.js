@@ -21,4 +21,3 @@ module.exports = ({ token }) => {
         }).catch(e => { console.log(e?.response?.data?.detail) });
     });
 }
-
