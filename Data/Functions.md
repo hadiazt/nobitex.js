@@ -41,6 +41,8 @@ nobitex.account({ token: '' }).then(res => console.log(res))
 <h2>CreateWallet</h2>
 
 ```js
+const nobitex = require(nobitex.js)
+nobitex.CreateWallet({ token, type: '' }).then(res => console.log(res))
 ```
 <h5>Your Nobitex Account Sercet <a href="https://nobitex.ir/app/settings/">Token</a></h5>
 <h5><a href="https://github.com/hadiazt/nobitex.js/blob/main/Data/Objects.md#--createwallet-function--">Objects</a></h5>
