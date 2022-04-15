@@ -75,3 +75,11 @@ const nobitex = require('nobitex.js')
 nobitex.AccountLimitations({ token: '' }).then(res => console.log(res))
 ```
 <h6>Your Nobitex Account Sercet <a href="https://nobitex.ir/app/settings/">Token</a></h6>
+
+<h2> AccountWallets : </h2>
+
+```js
+const nobitex = require('nobitex.js')
+nobitex.AccountWallets({ token }).then(res => console.log(res))
+```
+<h6>Your Nobitex Account Sercet <a href="https://nobitex.ir/app/settings/">Token</a></h6>
