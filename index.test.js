@@ -3,8 +3,9 @@ const nobitex = require('./src/main')
 const { token } = require('./file.json')
 
 
-// nobitex.price({type:''}).then(res => console.log(res))
-// nobitex.trades({ type: '' }).then(res => console.log(res))
-// nobitex.market({from:'',to:''}).then(res => console.log(res))
-// nobitex.global().then(res => console.log(res))
-// nobitex.account({ token: token }).then(res => console.log(res))
+// nobitex.Price({type:''}).then(res => console.log(res))
+// nobitex.Trades({ type: '' }).then(res => console.log(res))
+// nobitex.Market({from:'',to:''}).then(res => console.log(res))
+// nobitex.Global().then(res => console.log(res))
+// nobitex.Account({ token: token }).then(res => console.log(res))
+nobitex.CreateWallet
