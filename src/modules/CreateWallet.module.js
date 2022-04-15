@@ -1,11 +1,12 @@
 const axios = require('axios');
-module.exports = ({ token }) => {
+module.exports = ({ token,type }) => {
     const config = {
         method: 'post',
         url: 'https://api.nobitex.ir/users/wallets/generate-address',
         headers: {
             Authorization: `Token ${token}`,
-        }
+        },
+        data: { "currency": type }
     };
     return new Promise((resolve) => {
         axios(config).then(data => {
