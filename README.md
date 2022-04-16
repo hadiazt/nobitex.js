@@ -56,8 +56,7 @@ Update Trades.module.js
 Update Price.module.js
 
 V 0.0.8 (16 April) : 
-
-
+Some .md Changes
 ```
 
 
