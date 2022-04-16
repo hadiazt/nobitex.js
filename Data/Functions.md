@@ -59,6 +59,6 @@ SOON . . .
 <h5>CreateWallet <a href="https://github.com/hadiazt/nobitex.js/blob/main/Data/Objects.md#--createwallet-function--">Objects</a></h5>
 <h5>Market (From & To) <a href="https://github.com/hadiazt/nobitex.js/blob/main/Data/Objects.md#--market-function--">Objects</a></h5>
 <h5>Token : Your Nobitex Account Sercet <a href="https://nobitex.ir/app/settings/">Token</a></h5>
-<h5>CardNumber : Your Card Number Witout Space </h5>
+<h5>CardNumber : Your Card Number Without Space </h5>
 <h5>BankName : Your Card Bank Name In Persian Format</h5>
 <h5>Shaba : Your Card Account <a href="https://www.ibena.ir/news/123905/%DA%A9%D8%AF-%D8%B4%D8%A8%D8%A7-%DA%86%DB%8C%D8%B3%D8%AA-%D9%88-%DA%86%D9%87-%DA%A9%D8%A7%D8%A8%D8%B1%D8%AF%DB%8C-%D8%AF%D8%A7%D8%B1%D8%AF">Shaba</a> Number </h5>
