@@ -12,6 +12,6 @@ module.exports = ({ type }) => {
             const buy = req.asks
             const sell = req.bids
             resolve({ lastUpdate, lastTradePrice, buy, sell, })
-        }).catch(e => { console.log(e?.response?.data?.detail) });
+        }).catch(e => { console.log(e?.response?.data) });
     });
 }
