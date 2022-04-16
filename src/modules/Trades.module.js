@@ -17,6 +17,6 @@ module.exports = ({ type }) => {
                 res.push(x)
             })
             resolve(res)
-        }).catch(e => { console.log(e?.response?.data?.detail) });
+        }).catch(e => { console.log(e?.response) });
     });
 }
