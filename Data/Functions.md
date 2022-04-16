@@ -18,6 +18,7 @@ nobitex.global().then(res => console.log(res))
 ```
 <h1 align="center">Trading In The Market</h1>
 SOON . . .
+
 <h1 align="center">User Information</h1>
 
 ```js
@@ -54,7 +55,7 @@ nobitex.AccountBalance({ token:'' , type: '' }).then(res => console.log(res))
 <h1 align="center">Security</h1>
 SOON . . .
 
-<h6>Type <a href="https://github.com/hadiazt/nobitex.js/blob/main/Data/Objects.md#--price--trade-functions--">Objects</a></h6>
+<h5>Type <a href="https://github.com/hadiazt/nobitex.js/blob/main/Data/Objects.md#--price--trade-functions--">Objects</a></h5>
 
 <h5>Type <a href="https://github.com/hadiazt/nobitex.js/blob/main/Data/Objects.md#--createwallet-function--">Objects</a></h5>
 <h5>From & To <a href="https://github.com/hadiazt/nobitex.js/blob/main/Data/Objects.md#--market-function--">Objects</a></h5>
