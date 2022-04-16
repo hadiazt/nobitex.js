@@ -8,16 +8,56 @@
 
 <h4 align="center">Visit <a href="https://github.com/hadiazt/nobitex.js/blob/main/index.test.js">test.js</a> Or <a href="https://github.com/hadiazt/nobitex.js/blob/main/Data/Objects.md">Objects</a> & <a href="https://github.com/hadiazt/nobitex.js/blob/main/Data/Functions.md">Functions</a> For More Info</h4>
 
-<a href="https://www.npmjs.com/package/nobitex.js">NPM</a> Version :
+<a href="https://www.npmjs.com/package/nobitex.js">NPM</a> Version Changes Log :
 
- 0.0.4 | 0.0.5 | 0.0.7 | 0.0.8
-|:-------------:|:-------------:|:-------------:|:-------------
-15 April 2:36 | 15 April 13:11 | 16 April 22:29 | 16 April
 ```
-V 0.0.4
-V 0.0.5
-V 0.0.7
-V 0.0.8
+V 0.0.1 (11 April) :
+Create .gitignore
+Create Price.module.js
+Create Trades.module.js
+Create Market.module.js
+Create Global.module.js
+
+V 0.0.2 (15 April):
+Update Account.module.js
+Update .gitignore
+
+V 0.0.3 (15 April) :
+Some .md Changes
+
+V 0.0.4 (15 April 2:36) :
+Create AccountLimitations.module.js
+Create AddBankAccount.module.js
+Create AccountWallets.module.js
+Create AddCard.module.js
+
+Update Price.module.js
+Update Trades.module.js
+Update Market.module.js
+Update Global.module.js
+Update Account.module.js
+Update CreateWallet.module.js
+
+V 0.0.5 (15 April 13:11) :
+Create AccountBalance.module.js
+
+Update Trades.module.js
+Update Price.module.js
+Update Trades.module.js
+Update Price.module.js
+Update Market.module.js
+Update Global.module.js
+
+V 0.0.6 => V 0.0.7 (16 April 22:29) :
+Create LoginLog.module.js
+Create EmergencyCancel.module.js
+
+Update Trades.module.js
+Update Price.module.js
+
+V 0.0.8 (16 April) : 
+
+
 ```
 
 
