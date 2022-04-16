@@ -21,7 +21,7 @@ nobitex.global().then(res => console.log(res))
 // Will Return All Available Cryptos Prices In USD Format
 ```
 <h1 align="center">Trading In The Market</h1>
-SOON . . .
+When This Repo Get 25 ⭐️
 
 <h1 align="center">User Information</h1>
 
@@ -65,7 +65,17 @@ nobitex.AccountBalance({ token:'' , type: '' }).then(res => console.log(res))
 ```
 
 <h1 align="center">Security</h1>
-SOON . . .
+
+```js
+const nobitex = require('nobitex.js')
+nobitex.LoginLog({ token }).then(res => console.log(res))
+// Will Return Last Login Devices
+```
+```js
+const nobitex = require('nobitex.js')
+nobitex.EmergencyCancel({ token }).then(res => console.log(res))
+// Will Gave You A Code For EmergencyCancel
+```
 
 <h1 align="center">Help</h1>
 
