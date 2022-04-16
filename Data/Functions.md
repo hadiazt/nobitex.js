@@ -91,8 +91,7 @@ nobitex.AccountBalance({ token:'' , type: '' }).then(res => console.log(res))
 SOON . . .
 
 
-<h5>Token : </h5>
-<h6>Your Nobitex Account Sercet <a href="https://nobitex.ir/app/settings/">Token</a></h6>
+<h5>Token : Your Nobitex Account Sercet <a href="https://nobitex.ir/app/settings/">Token</a></h5>
 <h5>CardNumber : </h5>
 <h6>Your Card Number Witout Space </h6>
 <h5>BankName : </h5>
