@@ -5,7 +5,7 @@ const { token } = require('./file.json')
 
 // nobitex.Price({ type: '' }).then(res => console.log(res))
 // nobitex.Trades({ type: '' }).then(res => console.log(res))
-// nobitex.Market({ from: 'btc', to: 'usdt' }).then(res => console.log(res))
+// nobitex.Market({ from: '', to: '' }).then(res => console.log(res))
 // nobitex.Global().then(res => console.log(res))
 // nobitex.Account({ token }).then(res => console.log(res))
 // nobitex.CreateWallet({ token, type: '' }).then(res => console.log(res))
