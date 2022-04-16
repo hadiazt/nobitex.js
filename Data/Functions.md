@@ -77,7 +77,7 @@ nobitex.EmergencyCancel({ token }).then(res => console.log(res))
 // Will Gave You A Code For EmergencyCancel
 ```
 
-<h1 align="center">Help</h1>
+<h1 align="center">HELP</h1>
 
 <h5>Price & Trade <a href="https://github.com/hadiazt/nobitex.js/blob/main/Data/Objects.md#--price--trade-functions--">Objects</a></h5>
 <h5>CreateWallet <a href="https://github.com/hadiazt/nobitex.js/blob/main/Data/Objects.md#--createwallet-function--">Objects</a></h5>
