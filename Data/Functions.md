@@ -90,4 +90,9 @@ nobitex.AccountWallets({ token: '' }).then(res => console.log(res))
 ```
 <h6>Your Nobitex Account Sercet <a href="https://nobitex.ir/app/settings/">Token</a></h6>
 
+```js
+const nobitex = require('nobitex.js')
+nobitex.AccountBalance({ token:'' , type: '' }).then(res => console.log(res))
+```
 <h1 align="center">Security</h1>
+SOON . . .
