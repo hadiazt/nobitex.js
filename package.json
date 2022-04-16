@@ -1,6 +1,6 @@
 {
   "name": "nobitex.js",
-  "version": "0.0.5",
+  "version": "0.0.7",
   "description": "NPM Module For www.nobitex.ir (Crypto Trading Website)",
   "main": "./src/main.js",
   "scripts": {
