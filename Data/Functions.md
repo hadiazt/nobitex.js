@@ -3,18 +3,22 @@
 ```js
 const nobitex = require('nobitex.js')
 nobitex.price({ type: '' }).then(res => console.log(res))
+// Will Return Few Last Trades Prices
 ```
 ```js
 const nobitex = require('nobitex.js')
 nobitex.trades({ type: '' }).then(res => console.log(res))
+// Will Return Few Last Trades
 ```
 ```js
 const nobitex = require('nobitex.js')
 nobitex.market({ from: '', to: '' }).then(res => console.log(res))
+// Will Return The Selected Crypto Changes
 ```
 ```js
 const nobitex = require('nobitex.js')
 nobitex.global().then(res => console.log(res))
+// Will Return All Available Cryptos Prices In USD Format
 ```
 <h1 align="center">Trading In The Market</h1>
 SOON . . .
@@ -24,32 +28,40 @@ SOON . . .
 ```js
 const nobitex = require('nobitex.js')
 nobitex.account({ token: '' }).then(res => console.log(res))
+// Will Return Account Info
 ```
 ```js
 const nobitex = require('nobitex.js')
 nobitex.CreateWallet({ token: '', type: '' }).then(res => console.log(res))
+// Will Create Crypto Wallet For Selected Crypto
 ```
 ```js
 const nobitex = require('nobitex.js')
 nobitex.AddCard({ token: '', CardNumber: '', BankName: '' }).then(res => console.log(res))
+// Will Add BankCard To Your Account
 ```
 ```js
 const nobitex = require('nobitex.js')
-nobitex.AddBankAccount({ token: '', CardNumber: '', Shaba: '', CardName: '' }).then(res => console.log(res))
+nobitex.AddBankAccount({ token: '', CardNumber: '', Shaba: '', CardName: '' }).then(res => console.log
+(res))
+// Will Add BankAccount To Your Account
 ```
 ```js
 const nobitex = require('nobitex.js')
 nobitex.AccountLimitations({ token: '' }).then(res => console.log(res))
+// Will Return Your Account Limitions
 ```
 <h1 align="center">User financial information</h1>
 
 ```js
 const nobitex = require('nobitex.js')
 nobitex.AccountWallets({ token: '' }).then(res => console.log(res))
+// Will Return Your Account Crypto Wallets
 ```
 ```js
 const nobitex = require('nobitex.js')
 nobitex.AccountBalance({ token:'' , type: '' }).then(res => console.log(res))
+// Will Return Your Selected Crypto Stock
 ```
 
 <h1 align="center">Security</h1>
