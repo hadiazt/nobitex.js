@@ -1,4 +1,4 @@
-<h1 align="center">Market Information (General)</h1>
+<h1 align="center">📑 Market Information (General) 📑</h1>
 
 ```js
 const nobitex = require('nobitex.js')
@@ -20,10 +20,10 @@ const nobitex = require('nobitex.js')
 nobitex.global().then(res => console.log(res))
 // Will Return All Available Cryptos Prices In USD Format
 ```
-<h1 align="center">Trading In The Market</h1>
+<h1 align="center">💲Trading In The Market 💲</h1>
 When This Repo Get 25 ⭐️
 
-<h1 align="center">User Information</h1>
+<h1 align="center">👤 User Information 👤</h1>
 
 ```js
 const nobitex = require('nobitex.js')
@@ -51,7 +51,7 @@ const nobitex = require('nobitex.js')
 nobitex.AccountLimitations({ token: '' }).then(res => console.log(res))
 // Will Return Your Account Limitions
 ```
-<h1 align="center">User financial information</h1>
+<h1 align="center">💱 User financial information 💱</h1>
 
 ```js
 const nobitex = require('nobitex.js')
@@ -64,7 +64,7 @@ nobitex.AccountBalance({ token:'' , type: '' }).then(res => console.log(res))
 // Will Return Your Selected Crypto Stock
 ```
 
-<h1 align="center">Security</h1>
+<h1 align="center">🔐 Security 🔐</h1>
 
 ```js
 const nobitex = require('nobitex.js')
@@ -77,7 +77,7 @@ nobitex.EmergencyCancel({ token }).then(res => console.log(res))
 // Will Gave You A Code For EmergencyCancel
 ```
 
-<h1 align="center">HELP</h1>
+<h1 align="center">⚙️ HELP ⚙️</h1>
 
 <h5>Price & Trade <a href="https://github.com/hadiazt/nobitex.js/blob/main/Data/Objects.md#--price--trade-functions--">Objects</a></h5>
 <h5>CreateWallet <a href="https://github.com/hadiazt/nobitex.js/blob/main/Data/Objects.md#--createwallet-function--">Objects</a></h5>
