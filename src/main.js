@@ -14,4 +14,7 @@ exports.AccountLimitations = require('./modules/AccountLimitations.module.js')
 // User Financial Information
 exports.AccountWallets = require('./modules/AccountWallets.module.js')
 exports.AccountBalance = require('./modules/AccountBalance.module.js')
+
 // Security
+exports.LoginLog = require('./modules/LoginLog.module.js')
+exports.EmergencyCancel = require('./modules/EmergencyCancel.module.js')
