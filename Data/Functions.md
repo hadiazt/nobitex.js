@@ -55,6 +55,8 @@ nobitex.AccountBalance({ token:'' , type: '' }).then(res => console.log(res))
 <h1 align="center">Security</h1>
 SOON . . .
 
+<h1 align="center">Help</h1>
+
 <h5>Price & Trade <a href="https://github.com/hadiazt/nobitex.js/blob/main/Data/Objects.md#--price--trade-functions--">Objects</a></h5>
 <h5>CreateWallet <a href="https://github.com/hadiazt/nobitex.js/blob/main/Data/Objects.md#--createwallet-function--">Objects</a></h5>
 <h5>Market (From & To) <a href="https://github.com/hadiazt/nobitex.js/blob/main/Data/Objects.md#--market-function--">Objects</a></h5>
