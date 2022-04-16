@@ -1,4 +1,5 @@
 <h1 align="center">Market Information (General)</h1>
+
 ```js
 const nobitex = require('nobitex.js')
 nobitex.price({ type: '' }).then(res => console.log(res))
