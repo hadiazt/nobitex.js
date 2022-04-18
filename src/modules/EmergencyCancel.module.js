@@ -1,8 +1,9 @@
 const axios = require('axios');
+const { Base, Paths } = require('../config.json')
 module.exports = ({ token }) => {
     const config = {
         method: 'post',
-        url: 'https://api.nobitex.ir/security/emergency-cancel/activate',
+        url: Base+'/security/emergency-cancel/activate',
         headers: {
             Authorization: `Token ${token}`,
         }
