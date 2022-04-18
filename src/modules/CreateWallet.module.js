@@ -3,7 +3,7 @@ const { Base, Paths } = require('../config.json')
 module.exports = ({ token, type }) => {
     const config = {
         method: 'post',
-        url: Base + Paths.User + '/wallets' + Paths.Wallet.Create,
+        url: Base + Paths.User + Paths.Wallet.Create,
         headers: {
             Authorization: `Token ${token}`,
         },
