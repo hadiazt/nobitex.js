@@ -5,13 +5,12 @@
     "Market": "/market/stats",
     "MarketG": "/market/global-stats",
     "LoginATT": "/users/login-attempts",
+    "Profile": "/user/profile",
+    "Limitations": "/user/limitations",
     "EMGCancel": "/security/emergency-cancel/activate",
-    "Paths": {
-        "User": "/user",
-        "Wallet": {
-            "Balance": "/wallets/balance",
-            "list": "/wallets/list",
-            "Create": "/wallets/generate-address"
-        }
+    "Wallet": {
+        "Balance": "/user/wallets/balance",
+        "list": "/user/wallets/list",
+        "Create": "/user/wallets/generate-address"
     }
 }
