@@ -3,9 +3,9 @@
     "Paths": {
         "User": "/user",
         "Wallet": {
-            "Balance": "/balance",
-            "list": "/list",
-            "Create":"/generate-address"
+            "Balance": "/wallets/balance",
+            "list": "/wallets/list",
+            "Create":"/wallets/generate-address"
         }
     }
 }
