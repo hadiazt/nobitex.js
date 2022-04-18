@@ -5,14 +5,14 @@
     "Market": "/market/stats",
     "MarketG": "/market/global-stats",
     "LoginATT": "/users/login-attempts",
-    "Profile": "/user/profile",
-    "Limitations": "/user/limitations",
+    "Profile": "/users/profile",
+    "Limitations": "/users/limitations",
     "EMGCancel": "/security/emergency-cancel/activate",
-    "AddCard":"/user/cards-add",
-    "AddBank":"/user/accounts-add",
+    "AddCard":"/users/cards-add",
+    "AddBank":"/users/accounts-add",
     "Wallet": {
-        "Balance": "/user/wallets/balance",
-        "list": "/user/wallets/list",
-        "Create": "/user/wallets/generate-address"
+        "Balance": "/users/wallets/balance",
+        "list": "/users/wallets/list",
+        "Create": "/users/wallets/generate-address"
     }
 }
