@@ -1,9 +1,9 @@
 const axios = require('axios');
-const { Base, Paths } = require('../config.json')
+const { Base, Limitations } = require('../config.json')
 module.exports = ({ token }) => {
     const config = {
         method: 'post',
-        url: Base + Paths.User + '/limitations',
+        url: Base + Limitations,
         headers: {
             Authorization: `Token ${token}`,
         },
