@@ -2,6 +2,7 @@
     "Base": "https://api.nobitex.ir",
     "Trades":"/v2/trades/",
     "Price":"/v2/orderbook/",
+    "Market":"/market/stats",
     "Paths": {
         "User": "/user",
         "Wallet": {
