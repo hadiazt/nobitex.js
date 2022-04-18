@@ -1,5 +1,6 @@
 {
     "Base": "https://api.nobitex.ir",
+    "Trades":"/v2/trades/",
     "Paths": {
         "User": "/user",
         "Wallet": {
