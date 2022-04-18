@@ -1,17 +1,17 @@
 {
     "Base": "https://api.nobitex.ir",
-    "Trades":"/v2/trades/",
-    "Price":"/v2/orderbook/",
-    "Market":"/market/stats",
-    "MarketG":"/market/global-stats",
-    "LoginATT":"/users/login-attempts",
-
+    "Trades": "/v2/trades/",
+    "Price": "/v2/orderbook/",
+    "Market": "/market/stats",
+    "MarketG": "/market/global-stats",
+    "LoginATT": "/users/login-attempts",
+    "EMGCancel": "/security/emergency-cancel/activate",
     "Paths": {
         "User": "/user",
         "Wallet": {
             "Balance": "/wallets/balance",
             "list": "/wallets/list",
-            "Create":"/wallets/generate-address"
+            "Create": "/wallets/generate-address"
         }
     }
 }
