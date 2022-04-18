@@ -116,4 +116,8 @@ Update Price.module.js
 
 V 0.0.8 (16 April) : 
 Some .md Changes
+
+V 0.0.9 (18 April 20:07) :
+Create config.json
+Update All The Functions URLS For Better Handeling
 ```
