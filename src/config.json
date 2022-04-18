@@ -3,6 +3,8 @@
     "Trades":"/v2/trades/",
     "Price":"/v2/orderbook/",
     "Market":"/market/stats",
+    "LoginATT":"/users/login-attempts",
+    
     "Paths": {
         "User": "/user",
         "Wallet": {
