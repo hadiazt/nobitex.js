@@ -1,9 +1,9 @@
-
 const axios = require('axios');
+const { Base, Paths } = require('../config.json')
 module.exports = ({ token, type }) => {
     const config = {
         method: 'post',
-        url: 'https://api.nobitex.ir/users/wallets/balance',
+        url: Base + Paths.User + '/wallets' + Paths.Wallet.Balance,
         headers: {
             Authorization: `Token ${token}`,
         },
