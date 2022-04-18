@@ -1,8 +1,9 @@
 const axios = require('axios');
+const { Base, MarketG } = require('../config.json')
 module.exports = () => {
     const config = {
         method: 'post',
-        url: 'https://api.nobitex.ir/market/global-stats',
+        url: Base + MarketG,
     };
     return new Promise((resolve) => {
         axios(config).then(data => {
