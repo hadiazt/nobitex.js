@@ -1,0 +1,10 @@
+{
+    "Base": "https://api.nobitex.ir",
+    "Paths": {
+        "User": "/user",
+        "Wallet": {
+            "Balance": "/balance",
+            "list": "/list"
+        }
+    }
+}
