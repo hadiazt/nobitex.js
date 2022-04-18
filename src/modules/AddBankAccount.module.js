@@ -1,12 +1,13 @@
 const axios = require('axios');
-module.exports = ({ token, CardNumber, Shaba ,BankName}) => {
+const { Base, Paths } = require('../config.json')
+module.exports = ({ token, CardNumber, Shaba, BankName }) => {
     const config = {
         method: 'post',
-        url: 'https://api.nobitex.ir/users/accounts-add',
+        url: Base + Paths.User + '/accounts-add',
         headers: {
             Authorization: `Token ${token}`,
         },
-        data: { "number": CardNumber, "shaba": Shaba , "bank": BankName}
+        data: { "number": CardNumber, "shaba": Shaba, "bank": BankName }
     };
     return new Promise((resolve) => {
         axios(config).then(data => {
