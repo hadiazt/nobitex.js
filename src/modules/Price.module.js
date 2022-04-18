@@ -1,8 +1,9 @@
 const axios = require('axios');
+const { Base, Price } = require('../config.json')
 module.exports = ({ type }) => {
     const config = {
         method: 'get',
-        url: 'https://api.nobitex.ir/v2/orderbook/' + type,
+        url: Base + Price + type,
     };
     return new Promise((resolve) => {
         axios(config).then(data => {
