@@ -1,9 +1,9 @@
 const axios = require('axios');
-const { Base, Paths } = require('../config.json')
+const { Base, AddBank } = require('../config.json')
 module.exports = ({ token, CardNumber, Shaba, BankName }) => {
     const config = {
         method: 'post',
-        url: Base + Paths.User + '/accounts-add',
+        url: Base + AddBank,
         headers: {
             Authorization: `Token ${token}`,
         },
