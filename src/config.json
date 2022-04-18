@@ -8,6 +8,7 @@
     "Profile": "/user/profile",
     "Limitations": "/user/limitations",
     "EMGCancel": "/security/emergency-cancel/activate",
+    "AddBank":"/user/accounts-add",
     "Wallet": {
         "Balance": "/user/wallets/balance",
         "list": "/user/wallets/list",
