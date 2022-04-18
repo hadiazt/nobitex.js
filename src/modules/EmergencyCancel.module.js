@@ -1,9 +1,9 @@
 const axios = require('axios');
-const { Base, Paths } = require('../config.json')
+const { Base, EMGCancel } = require('../config.json')
 module.exports = ({ token }) => {
     const config = {
         method: 'post',
-        url: Base+'/security/emergency-cancel/activate',
+        url: Base + EMGCancel,
         headers: {
             Authorization: `Token ${token}`,
         }
