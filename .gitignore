@@ -1,2 +1,9 @@
 node_modules/
-file.json
+dist/
+coverage/
+*.tsbuildinfo
+*.tgz
+.env
+.env.*
+!.env.example
+.claude

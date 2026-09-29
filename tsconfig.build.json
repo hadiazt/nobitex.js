@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    // Every exported symbol carries an explicit type, so declarations are emitted without
+    // type inference (fast, stable .d.ts output via tsdown/oxc).
+    "isolatedDeclarations": true,
+    "declarationMap": true
+  },
+  "include": ["src"]
+}
