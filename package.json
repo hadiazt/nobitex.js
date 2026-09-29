@@ -1,27 +1,109 @@
 {
   "name": "nobitex.js",
-  "version": "0.0.9",
-  "description": "NPM Module For www.nobitex.ir (Crypto Trading Website)",
-  "main": "./src/main.js",
-  "scripts": {
-    "test": "index.test.js"
+  "version": "1.0.0",
+  "description": "Fully typed, zero-dependency TypeScript SDK for the Nobitex cryptocurrency exchange API (market data, spot & margin trading, wallets, withdrawals, WebSocket).",
+  "keywords": [
+    "nobitex",
+    "crypto",
+    "cryptocurrency",
+    "exchange",
+    "trading",
+    "api",
+    "sdk",
+    "typescript",
+    "iran",
+    "bitcoin"
+  ],
+  "homepage": "https://github.com/hadiazt/nobitex.js#readme",
+  "bugs": {
+    "url": "https://github.com/hadiazt/nobitex.js/issues"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/hadiazt/nobitex.js.git"
   },
-  "author": "hadi.az",
   "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/hadiazt/nobitex.js/issues"
+  "author": "hadi.az",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./websocket": {
+      "import": {
+        "types": "./dist/websocket/index.d.ts",
+        "default": "./dist/websocket/index.js"
+      },
+      "require": {
+        "types": "./dist/websocket/index.d.cts",
+        "default": "./dist/websocket/index.cjs"
+      }
+    },
+    "./package.json": "./package.json"
   },
-  "homepage": "https://github.com/hadiazt/nobitex.js#readme",
-  "dependencies": {
-    "axios": "^0.26.1"
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.cts",
+  "files": [
+    "dist",
+    "src",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.build.json",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:integration": "NOBITEX_INTEGRATION=1 vitest run tests/integration/live.test.ts",
+    "check:exports": "publint && attw --pack . --profile node16",
+    "check": "npm run typecheck && npm run lint && npm run format:check && npm run test && npm run build && npm run check:exports",
+    "prepublishOnly": "npm run check"
   },
-  "keywords": [
-    "cryptocurrency",
-    "cryptocoins",
-    "crypto"
-  ]
+  "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.5",
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^24.0.0",
+    "@vitest/coverage-v8": "^5.0.2",
+    "centrifuge": "^5.7.4",
+    "eslint": "^10.11.0",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^17.12.0",
+    "prettier": "^3.9.9",
+    "publint": "^0.3.24",
+    "tsdown": "^0.23.0",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.71.0",
+    "vitest": "^5.0.2"
+  },
+  "peerDependencies": {
+    "centrifuge": "^5.0.0"
+  },
+  "peerDependenciesMeta": {
+    "centrifuge": {
+      "optional": true
+    }
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
 }

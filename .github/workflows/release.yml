@@ -1,0 +1,29 @@
+name: Release
+
+# Publishes to npm via Trusted Publishing (OIDC): no NPM_TOKEN secret is needed.
+# Configured on npmjs.com → nobitex.js → Settings → Trusted Publisher (workflow: release.yml).
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+  id-token: write # required for npm trusted publishing (OIDC) and provenance
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+          cache: npm
+      # Trusted publishing requires npm >= 11.5.1.
+      - run: npm install -g npm@latest
+      - run: npm ci
+      # `prepublishOnly` runs the full check (typecheck, lint, tests, build, export validation).
+      # Provenance is attached automatically when publishing via a trusted publisher.
+      - run: npm publish --access public
