@@ -20,6 +20,10 @@ ws.subscribe(channels.candle('BTCIRT', '1'), (candle) => {
 if (client.isAuthenticated) {
   const { websocketAuthParam } = await client.account.getProfile();
   ws.subscribe(channels.privateOrders(websocketAuthParam), (event) => {
+    if (event.status === 'Failed') {
+      console.warn(`order ${event.clientOrderId ?? '?'} rejected: ${event.code ?? event.message}`);
+      return;
+    }
     console.log(`order ${event.orderId}: ${event.status} filled ${event.filledAmount}`);
   });
 }

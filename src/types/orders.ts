@@ -24,20 +24,24 @@ export type OrderStatus = 'New' | 'Active' | 'Inactive' | 'Done' | 'Canceled';
 export type TradeTypeParam = 'spot' | 'margin';
 
 /** Trade type as returned in responses. */
-export type TradeType = 'Spot' | 'Margin';
+export type TradeType = 'Spot' | 'Margin' | 'Credit' | 'Debit';
 
 /**
  * Price parameters for each execution type:
  * - `limit` (default): `price` is required.
- * - `market`: `price` is optional but **strongly recommended** — it bounds slippage.
+ * - `market`: `price` is optional but **strongly recommended** for spot orders — it bounds
+ *   slippage. Margin endpoints do not accept it.
  * - `stop_limit`: `stopPrice` triggers a limit order at `price`.
  * - `stop_market`: `stopPrice` triggers a market order.
+ *
+ * `mode: 'default'` may be passed explicitly; it is the same as omitting `mode`.
  */
-export type OrderExecutionParams =
+export type OrderExecutionParams = { mode?: 'default' } & (
   | { execution?: 'limit'; price: MonetaryInput; stopPrice?: never }
   | { execution: 'market'; price?: MonetaryInput; stopPrice?: never }
   | { execution: 'stop_limit'; price: MonetaryInput; stopPrice: MonetaryInput }
-  | { execution: 'stop_market'; stopPrice: MonetaryInput; price?: MonetaryInput };
+  | { execution: 'stop_market'; stopPrice: MonetaryInput; price?: MonetaryInput }
+);
 
 /**
  * OCO ("one cancels the other") parameters: a limit order at `price` paired with a stop-limit
@@ -62,7 +66,10 @@ export interface SpotOrderBase {
   dstCurrency: QuoteCurrency | Currency;
   /** Amount in `srcCurrency`. */
   amount: MonetaryInput;
-  /** Client-side id (≤ 32 chars), unique among the user's open orders. Experimental. */
+  /**
+   * Client-side id (≤ 32 characters: letters, digits and `-`), unique among the user's open
+   * orders.
+   */
   clientOrderId?: string;
   /**
    * Pro mode: disables the 10-second duplicate-order protection. Use together with
@@ -82,6 +89,7 @@ export type CreateOrderParams = SingleOrderParams | OcoOrderParams;
 
 /** Order object. Some fields are only present for specific endpoints or `details=2`. */
 export interface Order {
+  /** Always present, except in `orders.list()` with the default `details: 1` (see {@link ListedOrder}). */
   id: number;
   type: OrderSide;
   execution?: OrderExecution;
@@ -107,7 +115,7 @@ export interface Order {
   created_at?: ISODateString;
   clientOrderId?: string | null;
   /** Id of the other order of an OCO pair. */
-  pairId?: number;
+  pairId?: number | null;
   isMyOrder?: boolean;
   /** Margin orders only. */
   leverage?: Monetary;
@@ -142,31 +150,40 @@ export interface ListOrdersParams extends PaginationParams {
   dstCurrency?: Currency;
   /** `2` adds `id`, `status`, `fee`, `created_at` and `averagePrice` to each order. */
   details?: 1 | 2;
-  /** Only orders with an id greater than this (cannot be combined with `page`). */
+  /**
+   * Only orders with an id greater than or equal to this (cannot be combined with `page`; a
+   * single page is returned).
+   */
   fromId?: number;
   order?: OrderSortKey;
 }
 
+/** An order as returned by `GET /market/orders/list`: `id` is only included with `details: 2`. */
+export type ListedOrder = Omit<Order, 'id'> & { id?: number };
+
 /** `GET /market/orders/list` */
-export interface ListOrdersResponse extends OkResponse {
-  orders: Order[];
+export interface ListOrdersResponse extends OkResponse, HasNext {
+  orders: ListedOrder[];
 }
 
 /** Parameters for `POST /market/orders/update-status`. */
 export type UpdateOrderStatusParams = ({ order: number } | { clientOrderId: string }) & {
-  /** `canceled` (from active/inactive) or `active` (from new). */
-  status: 'canceled' | 'active';
+  /** Target status. `canceled` is the only status supported by the API (from New/Active/Inactive). */
+  status: 'canceled';
 };
 
 /** `POST /market/orders/update-status` */
 export interface UpdateOrderStatusResponse extends OkResponse {
   updatedStatus: OrderStatus;
-  order?: Order;
+  order: Order;
 }
 
 /** Filters for `POST /market/orders/cancel-old` (bulk cancel). */
 export interface CancelOrdersParams {
-  /** Only cancel orders created within the last `hours` hours. Omit to cancel all. */
+  /**
+   * Only cancel orders **older** than `hours` hours (e.g. `2` keeps orders placed in the last two
+   * hours). Omit to cancel every matching active order.
+   */
   hours?: number;
   execution?: OrderExecutionParam;
   tradeType?: TradeTypeParam;
@@ -177,7 +194,7 @@ export interface CancelOrdersParams {
 /** A trade of the authenticated user. */
 export interface UserTrade {
   id: number;
-  orderId: number;
+  orderId: number | null;
   srcCurrency: string;
   dstCurrency: string;
   market: string;
@@ -189,13 +206,21 @@ export interface UserTrade {
   fee: Monetary;
 }
 
-/** Parameters for `GET /market/trades/list` (last 3 days). */
-export interface ListUserTradesParams extends PaginationParams {
+/** Parameters for `GET /market/trades/list` (last 180 days). */
+export interface ListUserTradesParams {
   /** Must be combined with `dstCurrency`. */
   srcCurrency?: Currency;
   dstCurrency?: Currency;
   /** Only trades with an id ≥ this value. */
   fromId?: number;
+  /** Only the user's `buy` or `sell` trades. */
+  tradeType?: OrderSide;
+  /** Chronological order (default `desc`). */
+  tradeOrder?: 'asc' | 'desc';
+  /** Page number, 1–100 (default 1). */
+  page?: number;
+  /** Trades per page, 1–500 (default 30). */
+  pageSize?: number;
 }
 
 /** `GET /market/trades/list` */

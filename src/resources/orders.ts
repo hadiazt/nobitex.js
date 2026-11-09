@@ -22,9 +22,9 @@ import type {
 } from '../types/index.js';
 import { toPositiveMonetaryString } from '../utils/format.js';
 import {
+  assertIntegerInRange,
   assertNonEmptyString,
   assertOneOf,
-  assertPagination,
   assertPositiveInteger,
   ensure,
 } from '../utils/validation.js';
@@ -49,7 +49,7 @@ function buildSpotOrderBody(params: CreateOrderParams): Record<string, unknown> 
     amount: toPositiveMonetaryString(params.amount, 'amount'),
     ...buildPriceFields(params),
     ...(params.clientOrderId !== undefined && { clientOrderId: params.clientOrderId }),
-    ...(params.pro && { pro: 'yes' }),
+    ...(params.pro && { pro: true }),
   };
 }
 
@@ -63,7 +63,7 @@ function lookupBody(lookup: OrderLookup): Record<string, unknown> {
     assertPositiveInteger(lookup.id, 'id');
     return { id: lookup.id };
   }
-  assertNonEmptyString(lookup.clientOrderId, 'clientOrderId');
+  assertClientOrderId(lookup.clientOrderId);
   return { clientOrderId: lookup.clientOrderId };
 }
 
@@ -71,7 +71,7 @@ function lookupBody(lookup: OrderLookup): Record<string, unknown> {
 export class OrdersResource extends Resource {
   /**
    * Places a spot order (`POST /market/orders/add`). Rate limit: 300 per 10 min, shared with
-   * margin orders.
+   * margin orders. API keys need the `TRADE` permission.
    *
    * Placing an order does not mean it is executed — track it with {@link OrdersResource.getStatus}
    * or the private WebSocket orders channel. Prices in rial markets are in **rials** (not tomans).
@@ -100,7 +100,11 @@ export class OrdersResource extends Resource {
     );
   }
 
-  /** Status of one order by `id` or `clientOrderId` (`POST /market/orders/status`). Rate limit: 300/min. */
+  /**
+   * Status of one order by `id` or `clientOrderId` (`POST /market/orders/status`). A
+   * `clientOrderId` lookup only searches open (New/Active/Inactive) orders. Rate limit: 300/min.
+   * API keys need the `READ` permission.
+   */
   getStatus(lookup: OrderLookup, options?: RequestOptions): Promise<OrderResponse> {
     return this.request(
       {
@@ -115,7 +119,7 @@ export class OrdersResource extends Resource {
 
   /**
    * Lists the user's orders (`GET /market/orders/list`), 100 by default, up to 1000.
-   * Rate limit: 30/min.
+   * Rate limit: 30/min. API keys need the `READ` permission.
    *
    * @example
    * const { orders } = await client.orders.list({ status: 'open', srcCurrency: 'btc', dstCurrency: 'usdt', details: 2 });
@@ -172,21 +176,26 @@ export class OrdersResource extends Resource {
   }
 
   /**
-   * Cancels (`status: 'canceled'`) or activates (`status: 'active'`) an order
-   * (`POST /market/orders/update-status`). Cancelling one leg of an OCO cancels both.
-   * Rate limit: 90/min.
+   * Cancels an order (`POST /market/orders/update-status`); `canceled` is the only target status
+   * the API supports. Cancelling one leg of an OCO cancels both. Rate limit: 90/min. API keys
+   * need the `TRADE` permission.
+   *
+   * When the order can no longer be cancelled (e.g. it is already `Done`), Nobitex answers
+   * `status: "failed"` with the current `updatedStatus` and `order` but no error code; the SDK
+   * then throws a {@link NobitexApiError} whose `body` holds that data.
    */
   updateStatus(
     params: UpdateOrderStatusParams,
     options?: RequestOptions,
   ): Promise<UpdateOrderStatusResponse> {
-    assertOneOf(params.status, 'status', ['canceled', 'active'] as const);
+    assertOneOf(params.status, 'status', ['canceled'] as const);
     let body: Record<string, unknown>;
     if ('order' in params) {
       assertPositiveInteger(params.order, 'order');
       body = { order: params.order, status: params.status };
     } else {
       assertNonEmptyString(params.clientOrderId, 'clientOrderId');
+      assertClientOrderId(params.clientOrderId);
       body = { clientOrderId: params.clientOrderId, status: params.status };
     }
     return this.request(
@@ -214,9 +223,9 @@ export class OrdersResource extends Resource {
   /**
    * Bulk-cancels active orders matching the filters (`POST /market/orders/cancel-old`).
    * With no filters **every** active order is cancelled. Inactive non-OCO stop orders are kept.
-   * Rate limit: 30/min.
+   * Rate limit: 30/min. API keys need the `TRADE` permission.
    *
-   * @example Cancel BTC/RLS limit orders placed in the last two hours
+   * @example Cancel BTC/RLS limit orders that are older than two hours
    * await client.orders.cancelBulk({ hours: 2, execution: 'limit', srcCurrency: 'btc', dstCurrency: 'rls' });
    */
   cancelBulk(params: CancelOrdersParams = {}, options?: RequestOptions): Promise<OkResponse> {
@@ -243,7 +252,10 @@ export class OrdersResource extends Resource {
     );
   }
 
-  /** The user's trades of the last 3 days (`GET /market/trades/list`). Rate limit: 30/min. */
+  /**
+   * The user's trades of the last 180 days (`GET /market/trades/list`). Rate limit: 30/min.
+   * API keys need the `READ` permission.
+   */
   listTrades(
     params: ListUserTradesParams = {},
     options?: RequestOptions,
@@ -254,7 +266,12 @@ export class OrdersResource extends Resource {
       'srcCurrency and dstCurrency must be provided together',
     );
     if (params.fromId !== undefined) assertPositiveInteger(params.fromId, 'fromId');
-    assertPagination(params);
+    if (params.tradeType !== undefined) assertOneOf(params.tradeType, 'tradeType', ORDER_SIDES);
+    if (params.tradeOrder !== undefined) {
+      assertOneOf(params.tradeOrder, 'tradeOrder', ['asc', 'desc'] as const);
+    }
+    if (params.page !== undefined) assertIntegerInRange(params.page, 'page', 1, 100);
+    if (params.pageSize !== undefined) assertIntegerInRange(params.pageSize, 'pageSize', 1, 500);
     return this.request(
       {
         method: 'GET',
@@ -263,6 +280,8 @@ export class OrdersResource extends Resource {
           srcCurrency: params.srcCurrency?.toLowerCase(),
           dstCurrency: params.dstCurrency?.toLowerCase(),
           fromId: params.fromId,
+          tradeType: params.tradeType,
+          tradeOrder: params.tradeOrder,
           page: params.page,
           pageSize: params.pageSize,
         },
@@ -275,6 +294,8 @@ export class OrdersResource extends Resource {
    * Places several orders in one request (`POST /market/orders/batch-add`). Each order is
    * validated independently; check every entry of `results`. Counts toward the shared
    * 300-orders-per-10-minutes limit.
+   *
+   * Not part of the OpenAPI reference; the API-key guide lists it under the `TRADE` permission.
    *
    * @experimental Beta endpoint — may change or be withdrawn by Nobitex.
    */

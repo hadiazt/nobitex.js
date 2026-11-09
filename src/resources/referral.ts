@@ -9,24 +9,32 @@ import { assertNonEmptyString, ensure } from '../utils/validation.js';
 
 /**
  * Referral program. Build a sign-up link from a code with
- * `https://nobitex.ir/signup/?refcode=CODE`.
+ * `https://nobitex.ir/signup/?refcode=CODE`. All endpoints are token only (API keys are not
+ * supported).
  */
 export class ReferralResource extends Resource {
-  /** Referral codes with registration/trade/profit stats (`GET /users/referral/links-list`). */
+  /**
+   * Referral codes with registration/trade/profit stats (`POST /users/referral/links-list`).
+   * Rate limit: 50 per 10 min.
+   */
   listLinks(options?: RequestOptions): Promise<ReferralLinksResponse> {
-    return this.request({ method: 'GET', path: '/users/referral/links-list' }, options);
+    return this.request(
+      { method: 'POST', path: '/users/referral/links-list', idempotent: true },
+      options,
+    );
   }
 
   /**
-   * Creates a referral code (`POST /users/referral/links-add`). Max 30 codes per user.
-   * Rate limit: 5/min.
+   * Creates a referral code (`POST /users/referral/links-add`). Rate limit: 5/min.
    *
    * @param params.friendShare - Share of the fee given back to the invited friend (default `0`).
+   * @param params.agenda - Referral programme id (default: the programme's default).
    */
   createLink(
-    params: { friendShare?: number } = {},
+    params: { friendShare?: number; agenda?: string } = {},
     options?: RequestOptions,
   ): Promise<CreateReferralLinkResponse> {
+    if (params.agenda !== undefined) assertNonEmptyString(params.agenda, 'agenda');
     if (params.friendShare !== undefined) {
       ensure(
         Number.isInteger(params.friendShare) && params.friendShare >= 0,
@@ -38,20 +46,30 @@ export class ReferralResource extends Resource {
       {
         method: 'POST',
         path: '/users/referral/links-add',
-        body: { friendShare: params.friendShare ?? 0 },
+        body: {
+          friendShare: params.friendShare ?? 0,
+          ...(params.agenda !== undefined && { agenda: params.agenda }),
+        },
       },
       options,
     );
   }
 
-  /** Whether the current user was referred by someone (`GET /users/referral/referral-status`). */
+  /**
+   * Whether the current user was referred by someone (`POST /users/referral/referral-status`).
+   * Rate limit: 50 per 10 min.
+   */
   getStatus(options?: RequestOptions): Promise<ReferralStatusResponse> {
-    return this.request({ method: 'GET', path: '/users/referral/referral-status' }, options);
+    return this.request(
+      { method: 'POST', path: '/users/referral/referral-status', idempotent: true },
+      options,
+    );
   }
 
   /**
-   * Sets the referrer of the current user — only within 24 hours of sign-up
-   * (`POST /users/referral/set-referrer`).
+   * Sets the referrer of the current user — only within 24 hours of sign-up, otherwise the API
+   * answers `ReferrerChangeUnavailable` (`POST /users/referral/set-referrer`).
+   * Rate limit: 50 per 10 min.
    */
   setReferrer(referrerCode: string, options?: RequestOptions): Promise<OkResponse> {
     assertNonEmptyString(referrerCode, 'referrerCode');

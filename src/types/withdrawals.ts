@@ -12,10 +12,18 @@ import type {
 
 /** Crypto withdrawal status. */
 export type WithdrawStatus = LiteralUnion<
-  'New' | 'Verified' | 'Processing' | 'Done' | 'Canceled' | 'Rejected'
+  | 'New'
+  | 'Verified'
+  | 'Accepted'
+  | 'Processing'
+  | 'Waiting'
+  | 'Sent'
+  | 'Done'
+  | 'Canceled'
+  | 'Rejected'
 >;
 
-/** Withdrawal request (crypto or rial). */
+/** Withdrawal request (crypto or rial; rial rows have `currency: 'rls'` and `network: 'FIAT_MONEY'`). */
 export interface Withdraw {
   id: number;
   createdAt: ISODateString;
@@ -27,7 +35,7 @@ export interface Withdraw {
   address: string;
   tag: string | null;
   wallet_id: number;
-  blockchain_url: string;
+  blockchain_url: string | null;
   is_cancelable: boolean;
 }
 
@@ -66,7 +74,7 @@ export type CreateWithdrawParams = AddressWithdrawParams | InvoiceWithdrawParams
 export interface ConfirmWithdrawParams {
   /** Withdrawal id returned by `create`. */
   withdraw: number;
-  /** One-time code sent by SMS/e-mail (not needed for address-book destinations). */
+  /** One-time code sent by SMS (not needed for address-book destinations). */
   otp?: string | number;
 }
 
@@ -77,8 +85,14 @@ export interface WithdrawResponse extends OkResponse {
 
 /** Parameters for `GET /users/wallets/withdraws/list`. */
 export interface ListWithdrawsParams extends PaginationParams, DateRangeParams {
-  /** Wallet id; omit for all wallets. */
-  wallet?: number;
+  /** Wallet id, or `'all'` (default) for every wallet. */
+  wallet?: number | 'all';
+}
+
+/** Parameters for `POST /users/wallets/withdraw-cancel`. */
+export interface CancelWithdrawParams {
+  /** Withdrawal id. */
+  withdraw: number;
 }
 
 /** `GET /users/wallets/withdraws/list` */
@@ -91,11 +105,12 @@ export type RialWithdrawStatus = LiteralUnion<
   | 'New'
   | 'Sent'
   | 'Bank processing'
-  | 'Partially Done'
+  | 'Partially done'
   | 'Done'
   | 'Failed'
   | 'Rejected'
   | 'Canceled'
+  | 'Other'
 >;
 
 /** A bank transfer that is part of a rial withdrawal. */
@@ -110,7 +125,7 @@ export interface RialWithdrawRecord {
 
 /** Rial (bank) withdrawal request. */
 export interface RialWithdraw {
-  /** String id starting with `CW` or `WJ`, e.g. `CW430542`. */
+  /** String id starting with `CW` or `WJ` (legacy `W` ids are returned as `WJ`), e.g. `CW430542`. */
   id: string;
   createdAt: ISODateString;
   status: RialWithdrawStatus;
@@ -118,7 +133,7 @@ export interface RialWithdraw {
   fee: Monetary;
   fulfilledAmount: Monetary;
   bankAccountId: number;
-  bankAccountInfo: string;
+  bankAccountInfo: string | null;
   isCancelable: boolean;
   records: RialWithdrawRecord[];
 }
@@ -127,11 +142,17 @@ export interface RialWithdraw {
 export interface CreateRialWithdrawParams {
   /** Id of a confirmed bank account (see `profile.bankAccounts`). */
   destinationBankAccountId: number;
-  /** Amount in rials. */
+  /** Total amount in rials **including** the fee; `amount - fee` is paid out. */
   amount: MonetaryInput;
 }
 
 /** Rial withdrawal endpoints. */
 export interface RialWithdrawResponse extends OkResponse {
   result: RialWithdraw;
+}
+
+/** `GET /cobank/withdraw-banks` */
+export interface RialWithdrawBanksResponse extends OkResponse {
+  /** Three-digit bank ids (e.g. `"062"`) settled within ~30 minutes; other banks use Paya. */
+  results: string[];
 }

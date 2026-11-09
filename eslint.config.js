@@ -43,6 +43,8 @@ export default tseslint.config(
       '@typescript-eslint/explicit-module-boundary-types': 'off',
       '@typescript-eslint/no-non-null-assertion': 'off',
       '@typescript-eslint/unbound-method': 'off',
+      // Deprecated endpoints keep their tests until they are removed.
+      '@typescript-eslint/no-deprecated': 'off',
     },
   },
   {

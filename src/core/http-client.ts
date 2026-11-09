@@ -30,8 +30,11 @@ export type HttpMethod = 'GET' | 'POST' | 'DELETE';
  * - `none`: public endpoint, credentials are never sent.
  * - `required`: fails fast with {@link NobitexCredentialsError} when the client has no credentials.
  * - `optional`: credentials are sent when available (e.g. user-specific margin leverage).
+ * - `optional-token`: public endpoint whose personalised variant only accepts a token. A token is
+ *   sent when configured; API-key clients call it anonymously instead of sending a signature the
+ *   endpoint does not support.
  */
-export type AuthMode = 'none' | 'required' | 'optional';
+export type AuthMode = 'none' | 'required' | 'optional' | 'optional-token';
 
 /** Description of a single API call. */
 export interface RequestSpec {
@@ -169,7 +172,10 @@ export class HttpClient {
     const pathWithQuery = `${spec.path}${buildQueryString(spec.query)}`;
     const info: RequestInfo = { method, path: pathWithQuery };
     const auth = spec.auth ?? 'required';
-    const authenticator = auth === 'none' ? undefined : this.#authenticator;
+    const authenticator =
+      auth === 'none' || (auth === 'optional-token' && this.#authenticator?.kind !== 'token')
+        ? undefined
+        : this.#authenticator;
 
     if (auth === 'required' && !authenticator) {
       throw new NobitexCredentialsError(
@@ -184,9 +190,9 @@ export class HttpClient {
     for (let attempt = 0; ; attempt++) {
       options.signal?.throwIfAborted();
       const headers: Record<string, string> = {
-        ...options.headers,
         Accept: 'application/json',
         'User-Agent': this.#userAgent,
+        ...options.headers,
       };
       if (bodyText) headers['Content-Type'] = 'application/json';
       if (options.totp) headers['X-TOTP'] = options.totp;
@@ -302,7 +308,13 @@ export class HttpClient {
     if (ok && isRecord(body) && body.status !== 'failed') return undefined;
 
     const record = isRecord(body) ? body : {};
-    const code = typeof record.code === 'string' ? record.code : 'HTTP_ERROR';
+    // Some endpoints answer Django-style `{ message, error: "NotFound" }` without a `code`.
+    const code =
+      typeof record.code === 'string'
+        ? record.code
+        : typeof record.error === 'string' && /^[A-Za-z][A-Za-z0-9_]*$/.test(record.error)
+          ? record.error
+          : 'HTTP_ERROR';
     const detail = [record.message, record.detail, record.error].find(
       (value): value is string => typeof value === 'string' && value.length > 0,
     );

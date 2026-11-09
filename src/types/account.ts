@@ -2,6 +2,8 @@ import type { Monetary, OkResponse } from './common.js';
 
 /** Bank card registered on the account. */
 export interface BankCard {
+  /** Id used by `account.deleteCard()`. */
+  id?: number;
   number: string;
   bank: string;
   owner: string;
@@ -9,7 +11,7 @@ export interface BankCard {
   status: string;
 }
 
-/** Bank account registered on the account. `id` is used for rial withdrawals. */
+/** Bank account registered on the account. `id` is used for rial withdrawals and deletion. */
 export interface BankAccount {
   id: number;
   number: string;
@@ -62,6 +64,7 @@ export interface Profile {
 /** `GET /users/profile` */
 export interface ProfileResponse extends OkResponse {
   profile: Profile;
+  isBusinessAccount?: boolean;
   tradeStats: {
     monthTradesTotal: Monetary;
     monthTradesCount: number;
@@ -76,7 +79,7 @@ export interface UsageLimit {
   limit: Monetary;
 }
 
-/** `GET /users/limitations` */
+/** `POST /users/limitations` */
 export interface LimitationsResponse extends OkResponse {
   limitations: {
     userLevel: string;
@@ -94,6 +97,8 @@ export interface LimitationsResponse extends OkResponse {
       withdrawTotalDaily: UsageLimit;
       withdrawTotalMonthly: UsageLimit;
     };
+    /** Deposit limits of the user level. */
+    depositLimits?: Record<string, unknown>;
   };
 }
 
@@ -101,21 +106,27 @@ export interface LimitationsResponse extends OkResponse {
 export interface AddCardParams {
   /** 16-digit card number. */
   number: string;
-  /** Bank name. */
-  bank: string;
+  /** Bank name (optional; the server uses "سایر" when omitted). */
+  bank?: string;
 }
 
 /** Parameters for `POST /users/accounts-add`. */
 export interface AddBankAccountParams {
-  /** Account number. */
-  number: string;
-  /** IBAN (Sheba), e.g. `IR…`. */
+  /** IBAN (Sheba): 26 characters starting with `IR`. */
   shaba: string;
-  /** Bank name. */
-  bank: string;
+  /** Account number (optional). */
+  number?: string;
+  /** @deprecated No longer part of the API; ignored by the SDK. */
+  bank?: string;
 }
 
 /** Favorite-markets endpoints. */
 export interface FavoriteMarketsResponse extends OkResponse {
   favoriteMarkets: string[];
+}
+
+/** Parameters for `POST /users/cards-delete` and `POST /users/accounts-delete`. */
+export interface DeleteBankItemParams {
+  /** Id of the bank card or bank account. */
+  id: number;
 }

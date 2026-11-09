@@ -14,6 +14,7 @@ export {
   OHLC_RESOLUTIONS,
   TAG_REQUIRED_NETWORKS,
   WEBSOCKET_URL,
+  WEBSOCKET_URLS,
   type NobitexEnvironment,
 } from './constants.js';
 

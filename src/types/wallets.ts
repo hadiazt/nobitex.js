@@ -11,16 +11,21 @@ import type {
   WalletType,
 } from './common.js';
 
+/** Wallet kinds accepted by the wallet-list endpoints. */
+export type WalletListType = WalletType | 'credit' | 'debit';
+
 /** Deposit address of a wallet on one network. */
 export interface DepositAddress {
   address: string | null;
   tag: string | null;
 }
 
-/** Wallet as returned by `GET /users/wallets/list` and `POST /wallets/transfer`. */
+/** Wallet as returned by `POST /users/wallets/list` and `POST /wallets/transfer`. */
 export interface Wallet {
   id: number;
   currency: string;
+  /** Wallet kind (returned by `POST /wallets/transfer`). */
+  type?: WalletType;
   balance: Monetary;
   blockedBalance: Monetary;
   activeBalance: Monetary;
@@ -33,28 +38,29 @@ export interface Wallet {
   depositInfo?: Record<string, DepositAddress>;
 }
 
-/** `GET /users/wallets/list` */
+/** `POST /users/wallets/list` */
 export interface WalletsResponse extends OkResponse {
   wallets: Wallet[];
 }
 
-/** Compact wallet as returned by `GET /v2/wallets`. */
+/** Compact wallet as returned by `POST /v2/wallets`. */
 export interface WalletSummary {
   id: number;
   balance: Monetary;
   blocked: Monetary;
 }
 
-/** `GET /v2/wallets` — keyed by upper-case currency (`RLS`, `BTC`, …). */
+/** `POST /v2/wallets` — keyed by upper-case currency (`RLS`, `BTC`, …). */
 export interface WalletSummariesResponse extends OkResponse {
   wallets: Record<string, WalletSummary>;
 }
 
-/** Parameters for `GET /v2/wallets`. */
+/** Parameters for `POST /v2/wallets`. */
 export interface WalletSummariesParams {
   /** Currencies to include, e.g. `['rls', 'btc']`. Omit for all. */
   currencies?: string | readonly string[];
-  type?: WalletType;
+  /** Wallet kind (default `spot`). */
+  type?: WalletListType;
 }
 
 /** `POST /users/wallets/balance` */
@@ -79,7 +85,7 @@ export interface WalletTransaction {
 }
 
 /** `GET /users/wallets/transactions/list` and `GET /users/transactions-history` */
-export interface TransactionsResponse extends OkResponse, HasNext {
+export interface TransactionsResponse extends OkResponse, Partial<HasNext> {
   transactions: WalletTransaction[];
 }
 
@@ -104,14 +110,18 @@ export type TransactionType =
   | 'yield_farming'
   | 'discount';
 
-/** Parameters for `GET /users/transactions-history` (range limited to 90 days). */
+/**
+ * Parameters for `GET /users/transactions-history`. The range length is limited by Nobitex; too
+ * long or invalid ranges are rejected with HTTP 422.
+ */
 export interface TransactionHistoryParams extends PaginationParams {
   currency?: Currency;
-  tp?: TransactionType;
-  /** Range start (ISO date-time or `Date`). */
-  from?: ISODateString | Date;
-  /** Range end (ISO date-time or `Date`). */
-  to?: ISODateString | Date;
+  /** One or more transaction types. */
+  tp?: TransactionType | readonly TransactionType[];
+  /** Range start: Unix seconds, `Date` or ISO date-time (sent as Unix seconds). */
+  from?: number | Date | ISODateString;
+  /** Range end: Unix seconds, `Date` or ISO date-time (sent as Unix seconds). */
+  to?: number | Date | ISODateString;
   /** Only return transactions with an id greater than this. */
   fromId?: number;
 }
@@ -133,31 +143,41 @@ export interface Deposit {
 /** `GET /users/wallets/deposits/list` */
 export interface DepositsResponse extends OkResponse, HasNext {
   deposits: Deposit[];
+  /** Withdrawals returned alongside the deposits. */
+  withdraws?: unknown[];
 }
 
-/**
- * Parameters for `GET /users/wallets/deposits/list` (last 3 months). Pagination and date filters
- * only apply when `wallet` is set.
- */
+/** Parameters for `GET /users/wallets/deposits/list`. */
 export interface DepositsParams extends PaginationParams, DateRangeParams {
-  wallet?: number;
+  /** Wallet id, or `'all'` (default). */
+  wallet?: number | 'all';
 }
 
-/** Parameters for `POST /users/wallets/generate-address`. */
-export type GenerateAddressParams =
-  | { currency: Currency; network?: Network }
-  /** @deprecated Identify the wallet by `currency` instead. */
-  | { wallet: number; network?: Network };
+/** Deposit address flavour. */
+export type DepositAddressType = 'default' | 'legacy';
+
+/** Parameters for `POST /users/wallets/generate-address` (spot wallet). */
+export type GenerateAddressParams = {
+  /** Network; the coin's default network when omitted. */
+  network?: Network;
+  /** `default` (default) or `legacy` address format. */
+  addressType?: DepositAddressType;
+} & (
+  | { currency: Currency; wallet?: number }
+  /** Wallet id (takes precedence over `currency` when both are sent). */
+  | { wallet: number; currency?: Currency }
+);
 
 /** `POST /users/wallets/generate-address` */
 export interface GenerateAddressResponse extends OkResponse {
-  address: string;
+  address: string | null;
+  /** Memo/tag for tag-based coins (XRP, XLM, TON, …). */
   tag?: string | null;
 }
 
 /** Parameters for `POST /wallets/transfer` (spot ⇄ margin). */
 export interface TransferParams {
-  /** `rls` or `usdt`. */
+  /** Currency code, e.g. `usdt`, `rls` or `btc`. */
   currency: Currency;
   amount: MonetaryInput;
   src: WalletType;

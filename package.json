@@ -1,6 +1,6 @@
 {
   "name": "nobitex.js",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Fully typed, zero-dependency TypeScript SDK for the Nobitex cryptocurrency exchange API (market data, spot & margin trading, wallets, withdrawals, WebSocket).",
   "keywords": [
     "nobitex",

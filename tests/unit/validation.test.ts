@@ -395,8 +395,162 @@ const cases: Case[] = [
     (c) => c.apiKeys.create({ name: 'n', permissions: ['READ'], expirationDate: 'soon' }),
     'expirationDate',
   ],
-  ['api key update nothing', (c) => c.apiKeys.update('k', {}), 'params'],
-  ['api key delete empty', (c) => c.apiKeys.delete(''), 'publicKey'],
+  ['api key update nothing', (c) => c.apiKeys.update('k', {}, { totp: '1' }), 'params'],
+  ['api key delete empty', (c) => c.apiKeys.delete('', { totp: '1' }), 'publicKey'],
+  [
+    'api key create without 2FA',
+    (c) => c.apiKeys.create({ name: 'n', permissions: ['READ'] }),
+    'totp',
+  ],
+  [
+    'api key update without 2FA',
+    (c) => c.apiKeys.update('k', { name: 'x' }, {} as { totp: string }),
+    'totp',
+  ],
+  ['api key delete blank 2FA', (c) => c.apiKeys.delete('k', { totp: ' ' }), 'totp'],
+  [
+    'api key with more than 15 IPs',
+    (c) =>
+      c.apiKeys.create(
+        {
+          name: 'n',
+          permissions: ['READ', 'ADDRESS_BOOK'],
+          ipAddressesWhitelist: Array.from({ length: 16 }, (_, i) => `10.0.0.${i}`),
+        },
+        { totp: '1' },
+      ),
+    'ipAddressesWhitelist',
+  ],
+
+  // Spec sync (Mehr 1405)
+  [
+    'clientOrderId with forbidden characters',
+    (c) =>
+      c.orders.create({
+        type: 'buy',
+        srcCurrency: 'btc',
+        dstCurrency: 'rls',
+        amount: '1',
+        price: '1',
+        clientOrderId: 'has space',
+      }),
+    'clientOrderId',
+  ],
+  [
+    'clientOrderId lookup with "_"',
+    (c) => c.orders.getStatus({ clientOrderId: 'a_b' }),
+    'clientOrderId',
+  ],
+  [
+    'unknown order mode',
+    (c) =>
+      c.orders.create({
+        type: 'buy',
+        srcCurrency: 'btc',
+        dstCurrency: 'rls',
+        amount: '1',
+        price: '1',
+        mode: 'twap' as 'default',
+      }),
+    'mode',
+  ],
+  [
+    'activating an order is no longer supported',
+    (c) => c.orders.updateStatus({ order: 1, status: 'active' as 'canceled' }),
+    'status',
+  ],
+  ['user trades pageSize > 500', (c) => c.orders.listTrades({ pageSize: 501 }), 'pageSize'],
+  ['user trades page > 100', (c) => c.orders.listTrades({ page: 101 }), 'page'],
+  [
+    'user trades bad side filter',
+    (c) => c.orders.listTrades({ tradeType: 'spot' as 'buy' }),
+    'tradeType',
+  ],
+  [
+    'user trades bad order',
+    (c) => c.orders.listTrades({ tradeOrder: 'up' as 'asc' }),
+    'tradeOrder',
+  ],
+  ['depth for "all"', (c) => c.market.getDepth('ALL'), 'symbol'],
+  ['public trades for "all"', (c) => c.market.getTrades('all'), 'symbol'],
+  [
+    'margin market order with price',
+    (c) =>
+      c.margin.createOrder({
+        srcCurrency: 'btc',
+        dstCurrency: 'usdt',
+        amount: '1',
+        execution: 'market',
+        price: '1',
+      }),
+    'price',
+  ],
+  [
+    'margin OCO with clientOrderId',
+    (c) =>
+      c.margin.createOrder({
+        srcCurrency: 'btc',
+        dstCurrency: 'usdt',
+        amount: '1',
+        mode: 'oco',
+        price: '1',
+        stopPrice: '2',
+        stopLimitPrice: '3',
+        clientOrderId: 'x',
+      } as never),
+    'clientOrderId',
+  ],
+  [
+    'margin close with bad clientOrderId',
+    (c) => c.margin.closePosition(1, { amount: '1', price: '1', clientOrderId: '' }),
+    'clientOrderId',
+  ],
+  ['positions pageSize 0', (c) => c.margin.listPositions({ pageSize: 0 }), 'pageSize'],
+  ['positions page 1.5', (c) => c.margin.listPositions({ page: 1.5 }), 'page'],
+  ['withdraw list page > 100', (c) => c.withdrawals.list({ page: 101 }), 'page'],
+  ['withdraw cancel without id', (c) => c.withdrawals.cancel({ withdraw: 0 }), 'withdraw'],
+  ['malformed rial withdraw id', (c) => c.rialWithdrawals.cancel('AB123'), 'withdrawId'],
+  [
+    'address item on tag network without tag',
+    (c) => c.addressBook.createItem({ title: 't', network: 'xrp', address: 'r', tfaCode: '1' }),
+    'tag',
+  ],
+  [
+    'address item without 2FA',
+    (c) => c.addressBook.createItem({ title: 't', network: 'trx', address: 'T', tfaCode: '' }),
+    'tfaCode',
+  ],
+  ['address confirm bad id', (c) => c.addressBook.confirmItem({ id: -1, otpCode: '1' }), 'id'],
+  [
+    'address confirm without OTP',
+    (c) => c.addressBook.confirmItem({ id: 1, otpCode: '' }),
+    'otpCode',
+  ],
+  [
+    'validate address without address',
+    (c) => c.addressBook.validateAddress({ network: 'BTC', address: '' }),
+    'address',
+  ],
+  ['delete card bad id', (c) => c.account.deleteCard({ id: 0 }), 'id'],
+  ['delete bank account bad id', (c) => c.account.deleteBankAccount({ id: 1.2 }), 'id'],
+  ['bank account without shaba', (c) => c.account.addBankAccount({ shaba: '' }), 'shaba'],
+  ['wallet list bad type', (c) => c.wallets.list({ type: 'savings' as 'spot' }), 'type'],
+  [
+    'generate address without wallet or currency',
+    (c) => c.wallets.generateAddress({} as { currency: string }),
+    'currency',
+  ],
+  [
+    'generate address bad addressType',
+    (c) => c.wallets.generateAddress({ currency: 'btc', addressType: 'segwit' as 'legacy' }),
+    'addressType',
+  ],
+  [
+    'transaction history ISO string that is not a date',
+    (c) => c.wallets.getTransactionHistory({ from: 'yesterday' }),
+    'from',
+  ],
+  ['referral link empty agenda', (c) => c.referral.createLink({ agenda: ' ' }), 'agenda'],
 ];
 
 describe('local input validation', () => {

@@ -10,6 +10,7 @@ import type {
   OrderBookEvent,
   OrderResponse,
   PrivateOrderEvent,
+  PrivateOrderFailedEvent,
 } from '../../src/index.js';
 import { type channels } from '../../src/index.js';
 
@@ -70,7 +71,9 @@ describe('WebSocket channel payloads', () => {
   it('infers payload types from channel names', () => {
     expectTypeOf<ChannelPayload<'public:orderbook-BTCIRT'>>().toEqualTypeOf<OrderBookEvent>();
     expectTypeOf<ChannelPayload<'public:candle-BTCIRT-15'>>().toEqualTypeOf<CandleEvent>();
-    expectTypeOf<ChannelPayload<'private:orders#abc'>>().toEqualTypeOf<PrivateOrderEvent>();
+    expectTypeOf<ChannelPayload<'private:orders#abc'>>().toEqualTypeOf<
+      PrivateOrderEvent | PrivateOrderFailedEvent
+    >();
     expectTypeOf<
       ChannelPayload<ReturnType<typeof channels.orderBook>>
     >().toEqualTypeOf<OrderBookEvent>();

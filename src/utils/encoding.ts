@@ -15,6 +15,16 @@ export function bytesToBase64(bytes: Uint8Array): string {
   return btoa(binary);
 }
 
+/** Encodes bytes as URL-safe base64 (`-` and `_`, padding kept), as Nobitex expects for signatures. */
+export function bytesToBase64Url(bytes: Uint8Array): string {
+  return toBase64Url(bytesToBase64(bytes));
+}
+
+/** Converts standard base64 to the URL-safe alphabet (no-op for strings that already use it). */
+export function toBase64Url(base64: string): string {
+  return base64.trim().replace(/\+/g, '-').replace(/\//g, '_');
+}
+
 /** Resolves after `ms` milliseconds, or rejects early when `signal` aborts. */
 export function sleep(ms: number, signal?: AbortSignal): Promise<void> {
   return new Promise((resolve, reject) => {
