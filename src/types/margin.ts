@@ -15,12 +15,25 @@ import type { OcoParams, Order, OrderExecutionParams } from './orders.js';
 export interface MarginMarket {
   srcCurrency: string;
   dstCurrency: string;
-  /** Daily extension fee rate. */
-  positionFeeRate: Monetary;
-  /** Maximum leverage (depends on the user level when authenticated). */
+  /** Daily extension fee rate. Prefer the side-specific rates below when present. */
+  positionFeeRate: Monetary | null;
+  /**
+   * Maximum leverage. May differ per user (level, market depth, pool capacity and access) when
+   * called with a token.
+   */
   maxLeverage: Monetary;
   sellEnabled: boolean;
   buyEnabled: boolean;
+  /** Daily extension fee rate of sell positions (personalised responses only). */
+  sellPositionFeeRate?: Monetary | null;
+  /** Daily extension fee rate of buy positions (personalised responses only). */
+  buyPositionFeeRate?: Monetary | null;
+  /** Maximum sell delegation, usually in `srcCurrency` (personalised responses only). */
+  sellMaxDelegation?: Monetary | null;
+  /** Maximum buy delegation, usually in `dstCurrency` (personalised responses only). */
+  buyMaxDelegation?: Monetary | null;
+  /** Maximum buy delegation expressed in `srcCurrency` (personalised responses only). */
+  buyMaxDelegationInSrcCurrency?: Monetary | null;
 }
 
 /** `GET /margin/markets/list` */
@@ -29,10 +42,27 @@ export interface MarginMarketsResponse extends OkResponse {
   markets: Record<string, MarginMarket>;
 }
 
-/** Capacity of one liquidity pool. */
+/** One active liquidity pool. */
 export interface LiquidityPool {
+  id?: number;
   capacity: Monetary;
   filledCapacity: Monetary;
+  currentProfit?: number;
+  /** Annual percentage rate. */
+  APR?: Monetary | null;
+  minDelegation?: Monetary | null;
+  maxDelegation?: Monetary | null;
+  /** `YYYY-MM-DD` */
+  startDate?: string;
+  /** `YYYY-MM-DD` */
+  endDate?: string;
+  /** Profit period in days. */
+  profitPeriod?: number;
+  /** `YYYY-MM-DD` */
+  profitDate?: string;
+  /** Whether the authenticated user has an active stake in the pool. */
+  hasDelegate?: boolean;
+  hasActiveAlert?: boolean;
 }
 
 /** `GET /liquidity-pools/list` */
@@ -60,7 +90,7 @@ export interface DelegationLimitResponse extends OkResponse {
 export interface MarginOrderBase {
   srcCurrency: Currency;
   dstCurrency: QuoteCurrency | Currency;
-  /** Direction (default `sell`). */
+  /** Direction (default `sell`; always sent explicitly by the SDK). */
   type?: OrderSide;
   /** Leverage from 1 up to the market maximum, in steps of 0.5 (default `1`). */
   leverage?: MonetaryInput;
@@ -68,7 +98,11 @@ export interface MarginOrderBase {
 }
 
 /** Parameters for `POST /margin/orders/add` (regular order). */
-export type MarginOrderParams = MarginOrderBase & OrderExecutionParams;
+export type MarginOrderParams = MarginOrderBase &
+  OrderExecutionParams & {
+    /** Client-side id (≤ 32 characters: letters, digits and `-`). Not available for OCO orders. */
+    clientOrderId?: string;
+  };
 
 /** Parameters for `POST /margin/orders/add` (OCO order). */
 export type MarginOcoOrderParams = MarginOrderBase & OcoParams;
@@ -89,21 +123,22 @@ export interface Position {
   leverage: Monetary;
   openedAt: ISODateString | null;
   closedAt: ISODateString | null;
-  liquidationPrice: Monetary;
+  liquidationPrice: Monetary | null;
   entryPrice: Monetary | null;
   exitPrice: Monetary | null;
   // Open positions
-  delegatedAmount?: Monetary;
-  liability?: Monetary;
-  totalAsset?: Monetary;
-  marginRatio?: Monetary;
-  liabilityInOrder?: Monetary;
-  assetInOrder?: Monetary;
-  unrealizedPNL?: Monetary;
-  unrealizedPNLPercent?: Monetary;
-  expirationDate?: string;
-  extensionFee?: Monetary;
-  markPrice?: Monetary;
+  delegatedAmount?: Monetary | null;
+  liability?: Monetary | null;
+  totalAsset?: Monetary | null;
+  marginRatio?: Monetary | null;
+  liabilityInOrder?: Monetary | null;
+  assetInOrder?: Monetary | null;
+  unrealizedPNL?: Monetary | null;
+  unrealizedPNLPercent?: Monetary | null;
+  /** `YYYY-MM-DD` */
+  expirationDate?: string | null;
+  extensionFee?: Monetary | null;
+  markPrice?: Monetary | null;
   // Closed positions
   PNL?: Monetary | null;
   PNLPercent?: Monetary | null;
@@ -113,7 +148,10 @@ export interface Position {
 export interface ListPositionsParams extends PaginationParams {
   srcCurrency?: Currency;
   dstCurrency?: Currency;
-  /** `active` (default) or `past` (closed, liquidated or expired). */
+  /**
+   * `active` (default) or `past` (closed, liquidated or expired). Liquidated/expired positions
+   * may briefly remain under `active` until settlement finishes.
+   */
   status?: 'active' | 'past';
 }
 
@@ -128,10 +166,18 @@ export interface PositionResponse extends OkResponse {
 }
 
 /** Parameters for `POST /positions/{id}/close` (regular order). */
-export type ClosePositionParams = { amount: MonetaryInput } & OrderExecutionParams;
+export type ClosePositionParams = {
+  amount: MonetaryInput;
+  /** Client-side id (≤ 32 characters: letters, digits and `-`). */
+  clientOrderId?: string;
+} & OrderExecutionParams;
 
 /** Parameters for `POST /positions/{id}/close` (OCO order). */
-export type ClosePositionOcoParams = { amount: MonetaryInput } & OcoParams;
+export type ClosePositionOcoParams = {
+  amount: MonetaryInput;
+  /** Client-side id (≤ 32 characters: letters, digits and `-`). */
+  clientOrderId?: string;
+} & OcoParams;
 
 /** Response with the created margin order. */
 export interface MarginOrderResponse extends OkResponse {

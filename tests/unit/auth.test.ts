@@ -70,7 +70,8 @@ describe('ApiKeyAuthenticator (Ed25519)', () => {
     expect(headers['Nobitex-Key']).toBe(keys.publicKeyBase64);
     expect(headers['Nobitex-Timestamp']).toBe('1725000000');
     const signature = headers['Nobitex-Signature']!;
-    expect(signature).toMatch(/^[A-Za-z0-9+/]+=*$/);
+    // URL-safe base64 as required by the API-key guide (`-`/`_`, never `+`/`/`).
+    expect(signature).toMatch(/^[A-Za-z0-9_-]+=*$/);
     await expect(
       verify(keys.publicKey, signature, `1725000000POST/market/orders/add{"type":"buy"}`),
     ).resolves.toBe(true);
@@ -102,6 +103,20 @@ describe('ApiKeyAuthenticator (Ed25519)', () => {
     });
     await expect(text.headers({ method: 'GET', path: '/', body: '' })).resolves.toMatchObject({
       'Nobitex-Signature': 'c2ln',
+    });
+  });
+
+  it('encodes signatures as URL-safe base64, also when a signer returns standard base64', async () => {
+    // 0xfb 0xff 0xbf encodes to "+/+/" in standard base64.
+    const bytes = new ApiKeyAuthenticator('k', () =>
+      Promise.resolve(new Uint8Array([0xfb, 0xff, 0xbf])),
+    );
+    const text = new ApiKeyAuthenticator('k', () => Promise.resolve('+/+/'));
+    await expect(bytes.headers({ method: 'GET', path: '/', body: '' })).resolves.toMatchObject({
+      'Nobitex-Signature': '-_-_',
+    });
+    await expect(text.headers({ method: 'GET', path: '/', body: '' })).resolves.toMatchObject({
+      'Nobitex-Signature': '-_-_',
     });
   });
 

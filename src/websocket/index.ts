@@ -1,7 +1,7 @@
 import type * as CentrifugeModule from 'centrifuge';
 import type { Centrifuge, Options as CentrifugeOptions } from 'centrifuge';
 import type { NobitexClient } from '../client.js';
-import { WEBSOCKET_URL } from '../constants.js';
+import { WEBSOCKET_URLS, type NobitexEnvironment } from '../constants.js';
 import { NobitexAuthenticationError, NobitexPermissionError } from '../errors/index.js';
 import { assertNonEmptyString } from '../utils/validation.js';
 import type { ChannelPayload } from './types.js';
@@ -11,8 +11,10 @@ export type * from './types.js';
 
 /** Options for {@link NobitexWebSocket.create}. */
 export interface NobitexWebSocketOptions {
-  /** WebSocket endpoint (default `wss://ws.nobitex.ir/connection/websocket`). */
+  /** WebSocket endpoint; overrides `environment`. */
   url?: string | undefined;
+  /** `production` (default, `wss://ws.nobitex.ir/…`) or `testnet` (`wss://testnetws.nobitex.ir/…`). */
+  environment?: NobitexEnvironment | undefined;
   /**
    * Authenticated REST client used to fetch (and refresh) the connection JWT for private
    * channels via `client.auth.getWebSocketToken()`.
@@ -88,7 +90,8 @@ export class NobitexWebSocket {
         }
       : undefined;
 
-    const centrifuge = new mod.Centrifuge(options.url ?? WEBSOCKET_URL, {
+    const url = options.url ?? WEBSOCKET_URLS[options.environment ?? 'production'];
+    const centrifuge = new mod.Centrifuge(url, {
       ...(getToken && { getToken }),
       ...options.centrifuge,
     });

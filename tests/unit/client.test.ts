@@ -146,7 +146,9 @@ describe('token lifecycle', () => {
     const { client, last } = createTestClient({}, () => jsonResponse(login));
     await client.auth.login({ username: 'u@x.io', password: 'p' }, { useToken: false });
     expect(client.isAuthenticated).toBe(false);
-    expect(last().body).toMatchObject({ remember: 'no', captcha: 'api' });
+    expect(last().body).toMatchObject({ captcha: 'api' });
+    // `remember` only accepts "yes"; it is omitted otherwise.
+    expect(last().body).not.toHaveProperty('remember');
   });
 
   it('setToken() swaps credentials', async () => {

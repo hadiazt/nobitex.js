@@ -6,6 +6,7 @@ import {
   NobitexPermissionError,
   NobitexValidationError,
   WEBSOCKET_URL,
+  WEBSOCKET_URLS,
   channels,
 } from '../../src/index.js';
 import { NobitexWebSocket, type OrderBookEvent } from '../../src/websocket/index.js';
@@ -159,6 +160,11 @@ describe('NobitexWebSocket.create', () => {
     expect(ws.raw).toBe(instance);
     expect(instance.url).toBe(WEBSOCKET_URL);
     expect(instance.options).toEqual({ debug: true });
+  });
+
+  it('uses the testnet endpoint when environment is "testnet"', async () => {
+    await NobitexWebSocket.create({ environment: 'testnet' });
+    expect(FakeCentrifuge.instances[0]!.url).toBe(WEBSOCKET_URLS.testnet);
   });
 
   it('fetches connection tokens through the REST client', async () => {

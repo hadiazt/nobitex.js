@@ -7,7 +7,10 @@ import { NobitexClient } from 'nobitex.js';
 const totp = process.argv[2];
 if (!totp) throw new Error('Pass your current 2FA code as the first argument');
 
-// 1. With a token-authenticated client, create a trade-only key bound to this server's IP.
+// Most users create keys in the Nobitex panel and skip step 1. Bot login (`auth.login()`) is
+// being disabled by Nobitex, so automated clients must authenticate with an API key.
+// 1. With a token-authenticated client (panel token), create a trade-only key bound to this
+//    server's IP. API-key management is token only and always needs a 2FA code.
 const admin = NobitexClient.fromEnv();
 const { key, privateKey } = await admin.apiKeys.create(
   {

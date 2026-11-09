@@ -93,7 +93,7 @@ const cases: EndpointCase[] = [
   {
     name: 'account.getLimitations',
     call: (c) => c.account.getLimitations(),
-    method: 'GET',
+    method: 'POST',
     path: '/users/limitations',
   },
   {
@@ -104,16 +104,44 @@ const cases: EndpointCase[] = [
     body: { number: '5041721011111111', bank: 'رسالت' },
   },
   {
+    name: 'account.addCard (bank omitted)',
+    call: (c) => c.account.addCard({ number: '5041721011111111' }),
+    method: 'POST',
+    path: '/users/cards-add',
+    body: { number: '5041721011111111' },
+  },
+  {
     name: 'account.addBankAccount',
     call: (c) =>
       c.account.addBankAccount({
         number: '5041721011111111',
         shaba: 'IR111111111111111111111111',
-        bank: 'رسالت',
+        bank: 'ignored',
       }),
     method: 'POST',
     path: '/users/accounts-add',
-    body: { number: '5041721011111111', shaba: 'IR111111111111111111111111', bank: 'رسالت' },
+    body: { shaba: 'IR111111111111111111111111', number: '5041721011111111' },
+  },
+  {
+    name: 'account.addBankAccount (shaba only)',
+    call: (c) => c.account.addBankAccount({ shaba: 'IR111111111111111111111111' }),
+    method: 'POST',
+    path: '/users/accounts-add',
+    body: { shaba: 'IR111111111111111111111111' },
+  },
+  {
+    name: 'account.deleteCard',
+    call: (c) => c.account.deleteCard({ id: 12 }),
+    method: 'POST',
+    path: '/users/cards-delete',
+    body: { id: 12 },
+  },
+  {
+    name: 'account.deleteBankAccount',
+    call: (c) => c.account.deleteBankAccount({ id: 7 }),
+    method: 'POST',
+    path: '/users/accounts-delete',
+    body: { id: 7 },
   },
   {
     name: 'account.getFavoriteMarkets',
@@ -139,17 +167,29 @@ const cases: EndpointCase[] = [
   // --- Wallets ------------------------------------------------------------------------------
   {
     name: 'wallets.list',
-    call: (c) => c.wallets.list({ type: 'margin' }),
-    method: 'GET',
+    call: (c) => c.wallets.list({ type: 'credit' }),
+    method: 'POST',
     path: '/users/wallets/list',
-    query: { type: 'margin' },
+    body: { type: 'credit' },
+  },
+  {
+    name: 'wallets.list (default type)',
+    call: (c) => c.wallets.list(),
+    method: 'POST',
+    path: '/users/wallets/list',
   },
   {
     name: 'wallets.getSummaries',
     call: (c) => c.wallets.getSummaries({ currencies: ['rls', 'btc'], type: 'spot' }),
-    method: 'GET',
+    method: 'POST',
     path: '/v2/wallets',
-    query: { currencies: 'rls,btc', type: 'spot' },
+    body: { currencies: 'rls,btc', type: 'spot' },
+  },
+  {
+    name: 'wallets.getSummaries (no filters)',
+    call: (c) => c.wallets.getSummaries(),
+    method: 'POST',
+    path: '/v2/wallets',
   },
   {
     name: 'wallets.getBalance',
@@ -170,7 +210,7 @@ const cases: EndpointCase[] = [
     call: (c) =>
       c.wallets.getTransactionHistory({
         currency: 'ltc',
-        tp: 'withdraw',
+        tp: ['withdraw', 'deposit'],
         from: new Date('2018-10-01T00:00:00Z'),
         to: '2018-10-20T00:00:00.000000+00:00',
         fromId: 96124,
@@ -179,11 +219,18 @@ const cases: EndpointCase[] = [
     path: '/users/transactions-history',
     query: {
       currency: 'ltc',
-      tp: 'withdraw',
-      from: '2018-10-01T00:00:00.000Z',
-      to: '2018-10-20T00:00:00.000000+00:00',
+      tp: 'withdraw,deposit',
+      from: '1538352000',
+      to: '1539993600',
       from_id: '96124',
     },
+  },
+  {
+    name: 'wallets.getTransactionHistory (unix seconds)',
+    call: (c) => c.wallets.getTransactionHistory({ from: 1538352000, to: 1539993600 }),
+    method: 'GET',
+    path: '/users/transactions-history',
+    query: { from: '1538352000', to: '1539993600' },
   },
   {
     name: 'wallets.getDeposits',
@@ -201,11 +248,18 @@ const cases: EndpointCase[] = [
     body: { currency: 'btc', network: 'BSC' },
   },
   {
-    name: 'wallets.generateAddress (legacy wallet id)',
-    call: (c) => c.wallets.generateAddress({ wallet: 4159 }),
+    name: 'wallets.generateAddress (wallet id, legacy address)',
+    call: (c) => c.wallets.generateAddress({ wallet: 4159, addressType: 'legacy' }),
     method: 'POST',
     path: '/users/wallets/generate-address',
-    body: { wallet: 4159 },
+    body: { wallet: 4159, addressType: 'legacy' },
+  },
+  {
+    name: 'wallets.getDeposits (all wallets)',
+    call: (c) => c.wallets.getDeposits({ wallet: 'all' }),
+    method: 'GET',
+    path: '/users/wallets/deposits/list',
+    query: { wallet: 'all' },
   },
   {
     name: 'wallets.transfer',
@@ -261,7 +315,29 @@ const cases: EndpointCase[] = [
       amount: '64',
       execution: 'stop_market',
       stopPrice: '47500',
-      pro: 'yes',
+      pro: true,
+    },
+  },
+  {
+    name: 'orders.create (explicit default mode)',
+    call: (c) =>
+      c.orders.create({
+        type: 'buy',
+        srcCurrency: 'btc',
+        dstCurrency: 'rls',
+        amount: '1',
+        price: '2',
+        mode: 'default',
+      }),
+    method: 'POST',
+    path: '/market/orders/add',
+    body: {
+      type: 'buy',
+      srcCurrency: 'btc',
+      dstCurrency: 'rls',
+      amount: '1',
+      execution: 'limit',
+      price: '2',
     },
   },
   {
@@ -377,10 +453,25 @@ const cases: EndpointCase[] = [
   },
   {
     name: 'orders.listTrades',
-    call: (c) => c.orders.listTrades({ srcCurrency: 'usdt', dstCurrency: 'rls', fromId: 10023 }),
+    call: (c) =>
+      c.orders.listTrades({
+        srcCurrency: 'usdt',
+        dstCurrency: 'rls',
+        fromId: 10023,
+        tradeType: 'sell',
+        tradeOrder: 'asc',
+        pageSize: 500,
+      }),
     method: 'GET',
     path: '/market/trades/list',
-    query: { srcCurrency: 'usdt', dstCurrency: 'rls', fromId: '10023' },
+    query: {
+      srcCurrency: 'usdt',
+      dstCurrency: 'rls',
+      fromId: '10023',
+      tradeType: 'sell',
+      tradeOrder: 'asc',
+      pageSize: '500',
+    },
   },
   {
     name: 'orders.batchCreate',
@@ -455,6 +546,7 @@ const cases: EndpointCase[] = [
     call: (c) => c.margin.getLiquidityPools(),
     method: 'GET',
     path: '/liquidity-pools/list',
+    auth: 'optional',
   },
   {
     name: 'margin.getDelegationLimit',
@@ -478,10 +570,33 @@ const cases: EndpointCase[] = [
     body: {
       srcCurrency: 'btc',
       dstCurrency: 'rls',
+      type: 'sell',
       leverage: '2',
       amount: '0.01',
       execution: 'limit',
       price: '6400000000',
+    },
+  },
+  {
+    name: 'margin.createOrder (market, clientOrderId)',
+    call: (c) =>
+      c.margin.createOrder({
+        srcCurrency: 'btc',
+        dstCurrency: 'usdt',
+        type: 'buy',
+        amount: '0.01',
+        execution: 'market',
+        clientOrderId: 'm-1',
+      }),
+    method: 'POST',
+    path: '/margin/orders/add',
+    body: {
+      srcCurrency: 'btc',
+      dstCurrency: 'usdt',
+      type: 'buy',
+      amount: '0.01',
+      execution: 'market',
+      clientOrderId: 'm-1',
     },
   },
   {
@@ -507,6 +622,7 @@ const cases: EndpointCase[] = [
       leverage: '1.5',
       amount: '0.01',
       mode: 'oco',
+      execution: 'limit',
       price: '13400',
       stopPrice: '12600',
       stopLimitPrice: '12610',
@@ -531,6 +647,24 @@ const cases: EndpointCase[] = [
     method: 'POST',
     path: '/positions/128/close',
     body: { amount: '0.0100150225', execution: 'limit', price: '6200000000' },
+  },
+  {
+    name: 'margin.closePosition (stop_market, clientOrderId)',
+    call: (c) =>
+      c.margin.closePosition(128, {
+        amount: '0.01',
+        execution: 'stop_market',
+        stopPrice: '6100000000',
+        clientOrderId: 'close-1',
+      }),
+    method: 'POST',
+    path: '/positions/128/close',
+    body: {
+      amount: '0.01',
+      execution: 'stop_market',
+      stopPrice: '6100000000',
+      clientOrderId: 'close-1',
+    },
   },
   {
     name: 'margin.editCollateral',
@@ -579,6 +713,13 @@ const cases: EndpointCase[] = [
     body: { withdraw: 432, otp: '023005' },
   },
   {
+    name: 'withdrawals.cancel',
+    call: (c) => c.withdrawals.cancel({ withdraw: 432 }),
+    method: 'POST',
+    path: '/users/wallets/withdraw-cancel',
+    body: { withdraw: 432 },
+  },
+  {
     name: 'withdrawals.get',
     call: (c) => c.withdrawals.get(433),
     method: 'GET',
@@ -590,6 +731,13 @@ const cases: EndpointCase[] = [
     method: 'GET',
     path: '/users/wallets/withdraws/list',
     query: { wallet: '3456', pageSize: '20' },
+  },
+  {
+    name: 'withdrawals.list (all wallets)',
+    call: (c) => c.withdrawals.list({ wallet: 'all', page: 100 }),
+    method: 'GET',
+    path: '/users/wallets/withdraws/list',
+    query: { wallet: 'all', page: '100' },
   },
   {
     name: 'rialWithdrawals.create',
@@ -611,6 +759,18 @@ const cases: EndpointCase[] = [
     method: 'GET',
     path: '/cobank/withdraw/CW430542',
   },
+  {
+    name: 'rialWithdrawals.get (legacy id)',
+    call: (c) => c.rialWithdrawals.get('WJ12'),
+    method: 'GET',
+    path: '/cobank/withdraw/WJ12',
+  },
+  {
+    name: 'rialWithdrawals.getBanks',
+    call: (c) => c.rialWithdrawals.getBanks(),
+    method: 'GET',
+    path: '/cobank/withdraw-banks',
+  },
 
   // --- Address book -------------------------------------------------------------------------
   {
@@ -619,6 +779,42 @@ const cases: EndpointCase[] = [
     method: 'GET',
     path: '/address_book',
     query: { network: 'BSC' },
+  },
+  {
+    name: 'addressBook.validateAddress',
+    call: (c) => c.addressBook.validateAddress({ network: 'xrp', address: 'rAddr', tag: '42' }),
+    method: 'GET',
+    path: '/security/validate-address-network',
+    query: { network: 'XRP', address: 'rAddr', tag: '42' },
+  },
+  {
+    name: 'addressBook.createItem',
+    call: (c) =>
+      c.addressBook.createItem({ title: 'cold', network: 'trx', address: 'TAddr', tfaCode: '1' }),
+    method: 'POST',
+    path: '/security/address-book-item/create',
+    body: { title: 'cold', network: 'TRX', address: 'TAddr', tfaCode: '1' },
+  },
+  {
+    name: 'addressBook.createItem (tag)',
+    call: (c) =>
+      c.addressBook.createItem({
+        title: 'x',
+        network: 'XRP',
+        address: 'rAddr',
+        tag: '9',
+        tfaCode: '1',
+      }),
+    method: 'POST',
+    path: '/security/address-book-item/create',
+    body: { title: 'x', network: 'XRP', address: 'rAddr', tag: '9', tfaCode: '1' },
+  },
+  {
+    name: 'addressBook.confirmItem',
+    call: (c) => c.addressBook.confirmItem({ id: 12, otpCode: '654321' }),
+    method: 'POST',
+    path: '/security/address-book-item/confirm',
+    body: { id: 12, otpCode: '654321' },
   },
   {
     name: 'addressBook.add',
@@ -658,14 +854,20 @@ const cases: EndpointCase[] = [
   {
     name: 'security.getLoginAttempts',
     call: (c) => c.security.getLoginAttempts(),
-    method: 'GET',
+    method: 'POST',
     path: '/users/login-attempts',
   },
   {
     name: 'security.activateEmergencyCancel',
     call: (c) => c.security.activateEmergencyCancel(),
-    method: 'GET',
+    method: 'POST',
     path: '/security/emergency-cancel/activate',
+  },
+  {
+    name: 'security.getEmergencyCancelCode',
+    call: (c) => c.security.getEmergencyCancelCode(),
+    method: 'POST',
+    path: '/security/emergency-cancel/get-code',
   },
   {
     name: 'security.setAntiPhishingCode',
@@ -692,7 +894,7 @@ const cases: EndpointCase[] = [
   {
     name: 'referral.listLinks',
     call: (c) => c.referral.listLinks(),
-    method: 'GET',
+    method: 'POST',
     path: '/users/referral/links-list',
   },
   {
@@ -703,9 +905,16 @@ const cases: EndpointCase[] = [
     body: { friendShare: 10 },
   },
   {
+    name: 'referral.createLink (agenda)',
+    call: (c) => c.referral.createLink({ agenda: 'default' }),
+    method: 'POST',
+    path: '/users/referral/links-add',
+    body: { friendShare: 0, agenda: 'default' },
+  },
+  {
     name: 'referral.getStatus',
     call: (c) => c.referral.getStatus(),
-    method: 'GET',
+    method: 'POST',
     path: '/users/referral/referral-status',
   },
   {
@@ -729,6 +938,13 @@ const cases: EndpointCase[] = [
     call: (c) => c.portfolio.getDailyTotalProfit(),
     method: 'POST',
     path: '/users/portfolio/last-week-daily-total-profit',
+  },
+  {
+    name: 'portfolio.getDailyTotalProfit (monthly)',
+    call: (c) => c.portfolio.getDailyTotalProfit({ monthly: true }),
+    method: 'POST',
+    path: '/users/portfolio/last-week-daily-total-profit',
+    body: { monthly: true },
   },
   {
     name: 'portfolio.getMonthlyTotalProfit',
@@ -776,16 +992,19 @@ const cases: EndpointCase[] = [
   },
   {
     name: 'apiKeys.update (url-encodes the key)',
-    call: (c) => c.apiKeys.update('ab/c+d=', { name: 'renamed' }),
+    call: (c) => c.apiKeys.update('ab/c+d=', { name: 'renamed' }, { totp: '111111' }),
     method: 'POST',
     path: '/apikeys/update/ab%2Fc%2Bd%3D',
     body: { name: 'renamed' },
+    totp: '111111',
   },
   {
     name: 'apiKeys.delete',
-    call: (c) => c.apiKeys.delete('5XOCQZSPLQM4MiLzuUnZoBuqgYgTKl40W2X5j1pxfIA='),
+    call: (c) =>
+      c.apiKeys.delete('5XOCQZSPLQM4MiLzuUnZoBuqgYgTKl40W2X5j1pxfIA=', { totp: '222222' }),
     method: 'POST',
     path: '/apikeys/delete/5XOCQZSPLQM4MiLzuUnZoBuqgYgTKl40W2X5j1pxfIA%3D',
+    totp: '222222',
   },
 ];
 

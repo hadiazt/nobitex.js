@@ -39,7 +39,8 @@ export class MarketResource extends Resource {
 
   /**
    * Order books of every market in one call (`GET /v3/orderbook/all`), keyed by symbol.
-   * Prefer this over polling many markets individually.
+   * Prefer this over polling many markets individually. Rate limit: 300/min (shared with
+   * {@link MarketResource.getOrderBook}).
    */
   async getAllOrderBooks(options?: RequestOptions): Promise<AllOrderBooks> {
     const response = await this.request<Record<string, unknown>>(
@@ -55,18 +56,20 @@ export class MarketResource extends Resource {
     return books;
   }
 
-  /** Aggregated depth-chart data (`GET /v2/depth/{symbol}`, experimental). Rate limit: 300/min. */
+  /** Aggregated depth-chart data (`GET /v2/depth/{symbol}`). Rate limit: 300/min. */
   getDepth(symbol: string, options?: RequestOptions): Promise<DepthResponse> {
     assertPathSegment(symbol, 'symbol');
+    ensure(symbol.toLowerCase() !== 'all', 'symbol', '"all" is not supported by this endpoint');
     return this.request(
       { method: 'GET', path: `/v2/depth/${symbol.toUpperCase()}`, auth: 'none' },
       options,
     );
   }
 
-  /** Recent public trades of a market (`GET /v2/trades/{symbol}`). Rate limit: 60/min. */
+  /** Up to 20 recent public trades of a market (`GET /v2/trades/{symbol}`). Rate limit: 60/min. */
   getTrades(symbol: string, options?: RequestOptions): Promise<PublicTradesResponse> {
     assertPathSegment(symbol, 'symbol');
+    ensure(symbol.toLowerCase() !== 'all', 'symbol', '"all" is not supported by this endpoint');
     return this.request(
       { method: 'GET', path: `/v2/trades/${symbol.toUpperCase()}`, auth: 'none' },
       options,
@@ -98,7 +101,10 @@ export class MarketResource extends Resource {
   /**
    * OHLC candles in UDF column format (`GET /market/udf/history`), max 500 per page.
    * Returns `{ s: 'no_data' }` when the range is empty. Use {@link toCandles} to convert
-   * columns into candle objects.
+   * columns into candle objects. Rate limit: 60/min.
+   *
+   * Minute resolutions (`1`, `5`, `15`, `30`) only cover the last 7 days; older ranges return
+   * no data.
    */
   getOHLC(params: OhlcParams, options?: RequestOptions): Promise<OhlcResponse> {
     assertPathSegment(params.symbol, 'symbol');

@@ -31,22 +31,57 @@ export interface AddressBookEntryResponse extends OkResponse {
   data: AddressBookEntry;
 }
 
-/** Parameters for `POST /address_book`. */
+/** Parameters for `POST /address_book` (deprecated one-step flow). */
 export interface AddAddressParams {
   title: string;
   network: Network;
   address: string;
   /** Required on tag networks (BNB, EOS, PMN, XLM, XRP). */
   tag?: string;
-  /** E-mail/SMS code from `security.requestOtp({ usage: 'address_book' })`. */
+  /** SMS/e-mail code from `security.requestOtp({ usage: 'address_book' })`. */
   otpCode: string;
   /** Current 2FA (TOTP) code. */
   tfaCode: string;
 }
 
+/** Parameters for `POST /security/address-book-item/create` (step 1 of 2). */
+export interface CreateAddressBookItemParams {
+  title: string;
+  network: Network;
+  address: string;
+  /** Required on tag networks (BNB, EOS, PMN, XLM, XRP). */
+  tag?: string;
+  /** Current 2FA (TOTP) code. */
+  tfaCode: string;
+}
+
+/** `POST /security/address-book-item/create` */
+export interface CreateAddressBookItemResponse extends OkResponse {
+  /** Id to confirm with `addressBook.confirmItem()`. */
+  address_book_item_id: number;
+}
+
+/** Parameters for `POST /security/address-book-item/confirm` (step 2 of 2). */
+export interface ConfirmAddressBookItemParams {
+  /** `address_book_item_id` returned by `addressBook.createItem()`. */
+  id: number;
+  /** Code from `security.requestOtp({ type: 'email', usage: 'address_book' })`. */
+  otpCode: string;
+}
+
+/** Parameters for `GET /security/validate-address-network`. */
+export interface ValidateAddressParams {
+  network: Network;
+  address: string;
+  /** Memo/tag to validate together with the address. */
+  tag?: string;
+}
+
 /** Parameters for `POST /address_book/whitelist/deactivate`. */
 export interface DeactivateWhitelistParams {
+  /** Code from `security.requestOtp({ type: 'email', usage: 'deactivate_whitelist' })`. */
   otpCode: string;
+  /** Current 2FA (TOTP) code. */
   tfaCode: string;
 }
 
@@ -56,20 +91,26 @@ export interface DeactivateWhitelistParams {
 
 /** Login attempt. */
 export interface LoginAttempt {
-  ip: string;
+  ip: string | null;
+  ipCountry?: string | null;
+  userAgent?: string | null;
+  /** Whether the login came from a known device. */
+  isKnown?: boolean;
+  deviceId?: number | null;
   username: string;
   status: LiteralUnion<'Successful' | 'Unsuccessful'>;
   createdAt: ISODateString;
 }
 
-/** `GET /users/login-attempts` */
+/** `POST /users/login-attempts` */
 export interface LoginAttemptsResponse extends OkResponse {
   attempts: LoginAttempt[];
 }
 
-/** `GET /security/emergency-cancel/activate` */
+/** `POST /security/emergency-cancel/activate`, `POST /security/emergency-cancel/get-code` */
 export interface EmergencyCancelResponse extends OkResponse {
-  cancelCode: { code: string };
+  /** `code` is `null` when emergency cancel has never been activated. */
+  cancelCode: { code: string | null };
 }
 
 /** Parameters for `POST /security/anti-phishing`. */
@@ -91,7 +132,7 @@ export interface RequestOtpParams {
   /** Delivery channel. The documented value is `email`. */
   type: LiteralUnion<'email'>;
   /** What the code will be used for. */
-  usage: LiteralUnion<'address_book' | 'anti_phishing_code'>;
+  usage: LiteralUnion<'address_book' | 'anti_phishing_code' | 'deactivate_whitelist'>;
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -108,30 +149,32 @@ export interface ReferralLink {
   /** Invitee's share of the fee (percent). */
   friendShare: number;
   description?: string | null;
+  /** Referral programme id, e.g. `default`. */
+  agenda?: string;
   statsRegisters: number;
   statsTrades: number;
   /** Total referral income in rials. */
-  statsProfit: Monetary;
+  statsProfit: Monetary | number;
 }
 
-/** `GET /users/referral/links-list` */
+/** `POST /users/referral/links-list` */
 export interface ReferralLinksResponse extends OkResponse {
   links: ReferralLink[];
 }
 
-/**
- * `POST /users/referral/links-add` — the response body is not documented by Nobitex, so it is
- * typed as an open record.
- */
-export type CreateReferralLinkResponse = OkResponse & Record<string, unknown>;
+/** `POST /users/referral/links-add` */
+export interface CreateReferralLinkResponse extends OkResponse {
+  /** The new link (a subset of the {@link ReferralLink} fields). */
+  result: Partial<ReferralLink> & { referralCode: string };
+}
 
-/** `GET /users/referral/referral-status` */
+/** `POST /users/referral/referral-status` */
 export interface ReferralStatusResponse extends OkResponse {
   hasReferrer: boolean;
 }
 
 // ---------------------------------------------------------------------------------------------
-// Portfolio (beta)
+// Portfolio
 // ---------------------------------------------------------------------------------------------
 
 /** Daily profit/loss report. Values are `0` (number) when there is no data for that day. */
@@ -164,7 +207,7 @@ export interface LoginParams {
   /** Account e-mail. */
   username: string;
   password: string;
-  /** Issue a 30-day token instead of a 4-hour one. */
+  /** Issue a long-lived token (`remember=yes`). */
   remember?: boolean;
   /** Use `api` (default) — requires an Iranian IP and 2FA enabled on the account. */
   captcha?: string;
@@ -181,6 +224,8 @@ export interface LoginResponse {
   /** The API token. */
   key: string;
   device: string;
+  /** Token lifetime in seconds. */
+  expiresIn?: number;
 }
 
 /** `POST /auth/logout/` */
@@ -191,12 +236,12 @@ export interface LogoutResponse {
 
 /** `GET /auth/ws/token/` */
 export interface WebSocketTokenResponse extends OkResponse {
-  /** JWT used to connect to private WebSocket channels. */
+  /** JWT used to connect to private WebSocket channels (valid for 1200 seconds). */
   token: string;
 }
 
 // ---------------------------------------------------------------------------------------------
-// API keys (experimental)
+// API keys
 // ---------------------------------------------------------------------------------------------
 
 /** API key metadata. */
@@ -216,9 +261,9 @@ export interface ApiKey {
 export interface CreateApiKeyParams {
   name: string;
   description?: string;
-  /** One or more of `READ`, `TRADE`, `WITHDRAW`. */
+  /** One or more of `READ`, `TRADE`, `WITHDRAW`, `DEPOSIT`, `ADDRESS_BOOK`, `OTP`, `VIP_CREDIT`. */
   permissions: readonly ApiKeyPermission[];
-  /** Allowed IPv4/IPv6 addresses (strongly recommended for `WITHDRAW`). */
+  /** Up to 15 allowed IPv4/IPv6 addresses (strongly recommended for `WITHDRAW`). */
   ipAddressesWhitelist?: readonly string[];
   /** Expiry (UTC). */
   expirationDate?: ISODateString | Date;
@@ -243,8 +288,7 @@ export interface ApiKeyResponse extends OkResponse {
   key: ApiKey;
 }
 
-/**
- * `GET /apikeys/list` — returns the user's keys and their status. Nobitex has not documented the
- * exact response shape yet, so it is typed as an open record.
- */
-export type ListApiKeysResponse = OkResponse & Record<string, unknown>;
+/** `GET /apikeys/list` */
+export interface ListApiKeysResponse extends OkResponse {
+  keys: ApiKey[];
+}

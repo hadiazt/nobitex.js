@@ -64,15 +64,23 @@ CommonJS works too: `const { NobitexClient } = require('nobitex.js');`
 
 ## Authentication
 
-Public endpoints (market data, system options) need no credentials. For everything else, use **either** a token **or** an API key.
+Public endpoints (market data, system options) need no credentials. For everything else, use an **API key** (recommended, and required for bots) or a token.
+
+> [!IMPORTANT]
+> **Nobitex is disabling bot login (announced 2026-11-08).** The captcha-less login that
+> exchanges a username, password and 2FA code for a token (`POST /auth/login/` with
+> `captcha: "api"`, i.e. `client.auth.login()`) is being turned off. Requests authenticated with
+> tokens obtained that way will be rejected. Switch to an API key: create one in the Nobitex
+> panel and pass `apiKey: { key, privateKey }`. The SDK signs every request with the
+> `Nobitex-Key`, `Nobitex-Signature` and `Nobitex-Timestamp` headers. Replacing the token with
+> the key alone is not enough: each request must be signed. See the
+> [official API-key guide](https://apidocs.nobitex.ir/api_key/api-key-guide).
 
 ### Environment variables (recommended)
 
 Never hard-code credentials. Put them in `.env` (see [`.env.example`](.env.example)), keep that file out of git, and load it with `node --env-file=.env app.js`:
 
 ```bash
-NOBITEX_TOKEN=your-token
-# or
 NOBITEX_API_KEY=your-public-key
 NOBITEX_API_PRIVATE_KEY=your-private-key
 # optional
@@ -85,30 +93,22 @@ import { NobitexClient } from 'nobitex.js';
 const client = NobitexClient.fromEnv(); // reads process.env
 ```
 
-### Token
-
-Copy a token from **Profile → Settings** in the [Nobitex panel](https://nobitex.ir/app/settings/). It is valid for 30 days when "remember me" was selected at login.
-
-```ts
-const client = new NobitexClient({ token: process.env.NOBITEX_TOKEN });
-```
-
-You can also log in programmatically. This requires an Iranian IP and 2FA enabled on the account; tokens last 4 hours, or 30 days with `remember: true`:
-
-```ts
-const client = new NobitexClient();
-await client.auth.login(
-  { username: 'me@example.com', password: process.env.NOBITEX_PASSWORD!, remember: true },
-  { totp: '123456' }, // current 2FA code
-);
-// The client now uses the returned token. Revoke it with:
-await client.auth.logout();
-```
-
 ### API key (Ed25519)
 
-API keys can be limited to `READ`, `TRADE` and/or `WITHDRAW`, restricted to IP addresses, and given an expiry date. Requests are signed automatically:
-`Nobitex-Signature = base64(Ed25519(timestamp + method + path + body))`.
+Create a key in the Nobitex panel. Each key is scoped by permissions, can be restricted to up to 15 IP addresses, and can have an expiry date. The permissions are:
+
+| Permission     | Grants                                                                |
+| -------------- | --------------------------------------------------------------------- |
+| `READ`         | Profile, limits, orders, trades, wallets, withdrawals, portfolio data |
+| `TRADE`        | Spot and margin orders, closing positions, collateral changes         |
+| `WITHDRAW`     | Crypto and rial withdrawals, emergency cancel                         |
+| `DEPOSIT`      | Deposit addresses                                                     |
+| `ADDRESS_BOOK` | Address-book entries and whitelist mode                               |
+| `OTP`          | One-time code requests (address book, anti-phishing)                  |
+| `VIP_CREDIT`   | VIP credit                                                            |
+
+The SDK signs requests automatically, as described in the official guide:
+`Nobitex-Signature = base64url(Ed25519(timestamp + METHOD + path_with_query + raw_body))`. `Nobitex-Timestamp` is Unix seconds, and in production it must be within 30 seconds of the server clock, so keep the host clock synchronised (NTP).
 
 ```ts
 const client = new NobitexClient({
@@ -116,7 +116,7 @@ const client = new NobitexClient({
 });
 ```
 
-To keep the private key outside your process (KMS, HSM, vault), pass a signer instead:
+To keep the private key outside your process (KMS, HSM, vault), pass a signer instead. It may return raw bytes or base64, and the SDK sends the URL-safe form:
 
 ```ts
 const client = new NobitexClient({
@@ -124,13 +124,27 @@ const client = new NobitexClient({
 });
 ```
 
-Create keys with `client.apiKeys.create(...)`; see [`examples/api-key.ts`](examples/api-key.ts).
+A few endpoints are documented as **token only**: bank cards and accounts, wallet transfers, referral, login history, anti-phishing, address validation, and API-key management. The public endpoints `margin.getMarkets()` and `margin.getLiquidityPools()` return personalised data only with a token, so API-key clients call them anonymously.
+
+### Token
+
+A token copied from **Profile → Settings** in the [Nobitex panel](https://nobitex.ir/app/settings/) can still be passed as `token`, for example for the token-only endpoints above. Prefer API keys for anything automated.
+
+```ts
+const client = new NobitexClient({ token: process.env.NOBITEX_TOKEN });
+```
+
+`client.auth.login()` is **deprecated** (see the notice above) and emits a one-time `DeprecationWarning`.
 
 ### Testnet
 
 ```ts
-const client = new NobitexClient({ environment: 'testnet', token: testnetToken }); // https://testnetapiv2.nobitex.ir
+const client = new NobitexClient({ environment: 'testnet', apiKey }); // https://testnetapiv2.nobitex.ir
 ```
+
+### Browsers
+
+Since 31 Mordad 1405, Nobitex rejects browser requests from origins it has not allowed (HTTP 403, based on the `Origin` and `Sec-Fetch-*` headers). Run the SDK on a server (Node.js, Deno, Bun) and call your own backend from the browser.
 
 ## Usage
 
@@ -353,6 +367,8 @@ ws.connect();
 
 Channels: `orderBook(symbol)`, `candle(symbol, resolution)`, `trades(symbol)`, `marketStats(symbol)`, `allMarketStats()`, `privateOrders(authParam)`, `privateTrades(authParam)`. Fossil delta compression is on by default and cuts bandwidth by about 60%. `ws.raw` exposes the underlying `Centrifuge` instance.
 
+Use `NobitexWebSocket.create({ environment: 'testnet' })` for `wss://testnetws.nobitex.ir`. The private orders channel also publishes `{ status: 'Failed', code, message, clientOrderId }` when an order is rejected after submission, so check `event.status === 'Failed'` before reading order fields. Minute candles (`1`, `5`, `15`, `30`) cover only the last 7 days, both over the WebSocket and through `market.getOHLC()`.
+
 ## Configuration reference
 
 | Option        | Default                                                                                                    | Description                                                                         |
@@ -389,31 +405,33 @@ Every method takes an optional last argument `{ signal?, timeout?, headers? }`. 
 <details>
 <summary><b>Account</b>: <code>client.account</code> 🔐</summary>
 
-| Method                                    | Endpoint                         |
-| ----------------------------------------- | -------------------------------- |
-| `getProfile()`                            | `GET /users/profile`             |
-| `getLimitations()`                        | `GET /users/limitations`         |
-| `addCard({ number, bank })`               | `POST /users/cards-add`          |
-| `addBankAccount({ number, shaba, bank })` | `POST /users/accounts-add`       |
-| `getFavoriteMarkets()`                    | `GET /users/markets/favorite`    |
-| `addFavoriteMarkets(markets)`             | `POST /users/markets/favorite`   |
-| `removeFavoriteMarket(market \| 'All')`   | `DELETE /users/markets/favorite` |
+| Method                                  | Endpoint                         |
+| --------------------------------------- | -------------------------------- |
+| `getProfile()`                          | `GET /users/profile`             |
+| `getLimitations()`                      | `POST /users/limitations`        |
+| `addCard({ number, bank? })`            | `POST /users/cards-add`          |
+| `addBankAccount({ shaba, number? })`    | `POST /users/accounts-add`       |
+| `deleteCard({ id })`                    | `POST /users/cards-delete`       |
+| `deleteBankAccount({ id })`             | `POST /users/accounts-delete`    |
+| `getFavoriteMarkets()`                  | `GET /users/markets/favorite`    |
+| `addFavoriteMarkets(markets)`           | `POST /users/markets/favorite`   |
+| `removeFavoriteMarket(market \| 'All')` | `DELETE /users/markets/favorite` |
 
 </details>
 
 <details>
 <summary><b>Wallets</b>: <code>client.wallets</code> 🔐</summary>
 
-| Method                                                           | Endpoint                               |
-| ---------------------------------------------------------------- | -------------------------------------- |
-| `list({ type? })`                                                | `GET /users/wallets/list`              |
-| `getSummaries({ currencies?, type? })`                           | `GET /v2/wallets`                      |
-| `getBalance(currency)`                                           | `POST /users/wallets/balance`          |
-| `getTransactions({ wallet, page?, pageSize? })`                  | `GET /users/wallets/transactions/list` |
-| `getTransactionHistory({ currency?, tp?, from?, to?, fromId? })` | `GET /users/transactions-history`      |
-| `getDeposits({ wallet?, from?, to? })`                           | `GET /users/wallets/deposits/list`     |
-| `generateAddress({ currency, network? })`                        | `POST /users/wallets/generate-address` |
-| `transfer({ currency, amount, src, dst })`                       | `POST /wallets/transfer`               |
+| Method                                                            | Endpoint                               |
+| ----------------------------------------------------------------- | -------------------------------------- |
+| `list({ type? })` (`spot`, `margin`, `credit`, `debit`)           | `POST /users/wallets/list`             |
+| `getSummaries({ currencies?, type? })`                            | `POST /v2/wallets`                     |
+| `getBalance(currency)`                                            | `POST /users/wallets/balance`          |
+| `getTransactions({ wallet, page?, pageSize? })`                   | `GET /users/wallets/transactions/list` |
+| `getTransactionHistory({ currency?, tp?, from?, to?, fromId? })`  | `GET /users/transactions-history`      |
+| `getDeposits({ wallet?, page?, pageSize? })`                      | `GET /users/wallets/deposits/list`     |
+| `generateAddress({ currency \| wallet, network?, addressType? })` | `POST /users/wallets/generate-address` |
+| `transfer({ currency, amount, src, dst })`                        | `POST /wallets/transfer`               |
 
 </details>
 
@@ -425,10 +443,10 @@ Every method takes an optional last argument `{ signal?, timeout?, headers? }`. 
 | `create(params)` (limit, market, stop_limit, stop_market, OCO)                                            | `POST /market/orders/add`           |
 | `getStatus({ id } \| { clientOrderId })`                                                                  | `POST /market/orders/status`        |
 | `list({ status?, type?, execution?, tradeType?, srcCurrency?, dstCurrency?, details?, fromId?, order? })` | `GET /market/orders/list`           |
-| `updateStatus({ order \| clientOrderId, status })`                                                        | `POST /market/orders/update-status` |
+| `updateStatus({ order \| clientOrderId, status: 'canceled' })`                                            | `POST /market/orders/update-status` |
 | `cancel(id \| { clientOrderId })`                                                                         | `POST /market/orders/update-status` |
-| `cancelBulk({ hours?, execution?, tradeType?, srcCurrency?, dstCurrency? })`                              | `POST /market/orders/cancel-old`    |
-| `listTrades({ srcCurrency?, dstCurrency?, fromId? })`                                                     | `GET /market/trades/list`           |
+| `cancelBulk({ hours?, execution?, tradeType?, srcCurrency?, dstCurrency? })` (orders older than `hours`)  | `POST /market/orders/cancel-old`    |
+| `listTrades({ srcCurrency?, dstCurrency?, fromId?, tradeType?, tradeOrder?, page?, pageSize? })`          | `GET /market/trades/list`           |
 | `batchCreate(orders, { pro? })` _(experimental)_                                                          | `POST /market/orders/batch-add`     |
 | `batchCancel(orderIds)` _(experimental)_                                                                  | `POST /market/orders/cancel-batch`  |
 | `getOpenCount({ tradeType? })` _(experimental)_                                                           | `GET /market/orders/open-count`     |
@@ -438,16 +456,16 @@ Every method takes an optional last argument `{ signal?, timeout?, headers? }`. 
 <details>
 <summary><b>Margin</b>: <code>client.margin</code> 🔐</summary>
 
-| Method                                                   | Endpoint                               |
-| -------------------------------------------------------- | -------------------------------------- |
-| `getMarkets()` (credentials optional)                    | `GET /margin/markets/list`             |
-| `getLiquidityPools()`                                    | `GET /liquidity-pools/list`            |
-| `getDelegationLimit(market)`                             | `GET /margin/v2/delegation-limit`      |
-| `createOrder(params)` (incl. OCO)                        | `POST /margin/orders/add`              |
-| `listPositions({ srcCurrency?, dstCurrency?, status? })` | `GET /positions/list`                  |
-| `getPosition(id)`                                        | `GET /positions/{id}/status`           |
-| `closePosition(id, params)` (incl. OCO)                  | `POST /positions/{id}/close`           |
-| `editCollateral(id, collateral)`                         | `POST /positions/{id}/edit-collateral` |
+| Method                                                                     | Endpoint                               |
+| -------------------------------------------------------------------------- | -------------------------------------- |
+| `getMarkets()` (public; personalised with a token)                         | `GET /margin/markets/list`             |
+| `getLiquidityPools()` (public; personalised with a token)                  | `GET /liquidity-pools/list`            |
+| `getDelegationLimit(market)`                                               | `GET /margin/v2/delegation-limit`      |
+| `createOrder(params)` (incl. OCO, `clientOrderId`)                         | `POST /margin/orders/add`              |
+| `listPositions({ srcCurrency?, dstCurrency?, status?, page?, pageSize? })` | `GET /positions/list`                  |
+| `getPosition(id)`                                                          | `GET /positions/{id}/status`           |
+| `closePosition(id, params)` (incl. OCO, `clientOrderId`)                   | `POST /positions/{id}/close`           |
+| `editCollateral(id, collateral)`                                           | `POST /positions/{id}/edit-collateral` |
 
 </details>
 
@@ -458,36 +476,42 @@ Every method takes an optional last argument `{ signal?, timeout?, headers? }`. 
 | -------------------------------------------------------------- | -------------------------------------- |
 | `withdrawals.create(params, { totp })` 🔑                      | `POST /users/wallets/withdraw`         |
 | `withdrawals.confirm({ withdraw, otp? })`                      | `POST /users/wallets/withdraw-confirm` |
+| `withdrawals.cancel({ withdraw })`                             | `POST /users/wallets/withdraw-cancel`  |
 | `withdrawals.get(id)`                                          | `GET /withdraws/{id}`                  |
-| `withdrawals.list({ wallet?, from?, to? })`                    | `GET /users/wallets/withdraws/list`    |
+| `withdrawals.list({ wallet?, page?, pageSize?, from?, to? })`  | `GET /users/wallets/withdraws/list`    |
 | `rialWithdrawals.create({ destinationBankAccountId, amount })` | `POST /cobank/withdraw`                |
 | `rialWithdrawals.cancel(id)`                                   | `POST /cobank/withdraw/{id}/cancel`    |
 | `rialWithdrawals.get(id)`                                      | `GET /cobank/withdraw/{id}`            |
+| `rialWithdrawals.getBanks()`                                   | `GET /cobank/withdraw-banks`           |
 
 </details>
 
 <details>
 <summary><b>Address book, security, referral, portfolio</b> 🔐</summary>
 
-| Method                                                                 | Endpoint                                             |
-| ---------------------------------------------------------------------- | ---------------------------------------------------- |
-| `addressBook.list({ network? })`                                       | `GET /address_book`                                  |
-| `addressBook.add({ title, network, address, tag?, otpCode, tfaCode })` | `POST /address_book`                                 |
-| `addressBook.delete(id)`                                               | `DELETE /address_book/{id}/delete`                   |
-| `addressBook.activateWhitelist()`                                      | `POST /address_book/whitelist/activate`              |
-| `addressBook.deactivateWhitelist({ otpCode, tfaCode })`                | `POST /address_book/whitelist/deactivate`            |
-| `security.getLoginAttempts()`                                          | `GET /users/login-attempts`                          |
-| `security.activateEmergencyCancel()`                                   | `GET /security/emergency-cancel/activate`            |
-| `security.setAntiPhishingCode({ code, otpCode })`                      | `POST /security/anti-phishing`                       |
-| `security.getAntiPhishingCode()`                                       | `GET /security/anti-phishing`                        |
-| `security.requestOtp({ type, usage })`                                 | `POST /v2/otp/request`                               |
-| `referral.listLinks()`                                                 | `GET /users/referral/links-list`                     |
-| `referral.createLink({ friendShare? })`                                | `POST /users/referral/links-add`                     |
-| `referral.getStatus()`                                                 | `GET /users/referral/referral-status`                |
-| `referral.setReferrer(code)`                                           | `POST /users/referral/set-referrer`                  |
-| `portfolio.getDailyProfit({ monthly? })`                               | `POST /users/portfolio/last-week-daily-profit`       |
-| `portfolio.getDailyTotalProfit()`                                      | `POST /users/portfolio/last-week-daily-total-profit` |
-| `portfolio.getMonthlyTotalProfit()`                                    | `POST /users/portfolio/last-month-total-profit`      |
+| Method                                                                                | Endpoint                                             |
+| ------------------------------------------------------------------------------------- | ---------------------------------------------------- |
+| `addressBook.list({ network? })`                                                      | `GET /address_book`                                  |
+| `addressBook.validateAddress({ network, address, tag? })`                             | `GET /security/validate-address-network`             |
+| `addressBook.createItem({ title, network, address, tag?, tfaCode })`                  | `POST /security/address-book-item/create`            |
+| `addressBook.confirmItem({ id, otpCode })`                                            | `POST /security/address-book-item/confirm`           |
+| `addressBook.add({ title, network, address, tag?, otpCode, tfaCode })` _(deprecated)_ | `POST /address_book`                                 |
+| `addressBook.delete(id)`                                                              | `DELETE /address_book/{id}/delete`                   |
+| `addressBook.activateWhitelist()`                                                     | `POST /address_book/whitelist/activate`              |
+| `addressBook.deactivateWhitelist({ otpCode, tfaCode })`                               | `POST /address_book/whitelist/deactivate`            |
+| `security.getLoginAttempts()`                                                         | `POST /users/login-attempts`                         |
+| `security.activateEmergencyCancel()`                                                  | `POST /security/emergency-cancel/activate`           |
+| `security.getEmergencyCancelCode()`                                                   | `POST /security/emergency-cancel/get-code`           |
+| `security.setAntiPhishingCode({ code, otpCode })`                                     | `POST /security/anti-phishing`                       |
+| `security.getAntiPhishingCode()`                                                      | `GET /security/anti-phishing`                        |
+| `security.requestOtp({ type, usage })`                                                | `POST /v2/otp/request`                               |
+| `referral.listLinks()`                                                                | `POST /users/referral/links-list`                    |
+| `referral.createLink({ friendShare?, agenda? })`                                      | `POST /users/referral/links-add`                     |
+| `referral.getStatus()`                                                                | `POST /users/referral/referral-status`               |
+| `referral.setReferrer(code)`                                                          | `POST /users/referral/set-referrer`                  |
+| `portfolio.getDailyProfit({ monthly? })`                                              | `POST /users/portfolio/last-week-daily-profit`       |
+| `portfolio.getDailyTotalProfit({ monthly? })`                                         | `POST /users/portfolio/last-week-daily-total-profit` |
+| `portfolio.getMonthlyTotalProfit()`                                                   | `POST /users/portfolio/last-month-total-profit`      |
 
 </details>
 
@@ -496,13 +520,13 @@ Every method takes an optional last argument `{ signal?, timeout?, headers? }`. 
 
 | Method                                                                                       | Endpoint                     |
 | -------------------------------------------------------------------------------------------- | ---------------------------- |
-| `auth.login({ username, password, remember?, device? }, { totp })` 🔑                        | `POST /auth/login/`          |
+| `auth.login(...)` 🔑 _(deprecated: Nobitex is disabling bot login)_                          | `POST /auth/login/`          |
 | `auth.logout()` 🔐                                                                           | `POST /auth/logout/`         |
 | `auth.getWebSocketToken()` 🔐                                                                | `GET /auth/ws/token/`        |
 | `apiKeys.create({ name, permissions, ipAddressesWhitelist?, expirationDate? }, { totp })` 🔑 | `POST /apikeys/create`       |
 | `apiKeys.list()` 🔐                                                                          | `GET /apikeys/list`          |
-| `apiKeys.update(publicKey, { name?, description?, ipAddressesWhitelist? })` 🔐               | `POST /apikeys/update/{key}` |
-| `apiKeys.delete(publicKey)` 🔐                                                               | `POST /apikeys/delete/{key}` |
+| `apiKeys.update(publicKey, { name?, description?, ipAddressesWhitelist? }, { totp })` 🔑     | `POST /apikeys/update/{key}` |
+| `apiKeys.delete(publicKey, { totp })` 🔑                                                     | `POST /apikeys/delete/{key}` |
 
 </details>
 

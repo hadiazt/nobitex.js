@@ -1,5 +1,5 @@
 import { NobitexValidationError } from '../errors/index.js';
-import { base64ToBytes, bytesToBase64 } from '../utils/encoding.js';
+import { base64ToBytes, bytesToBase64Url, toBase64Url } from '../utils/encoding.js';
 import { assertNonEmptyString } from '../utils/validation.js';
 
 /** The parts of a request that are covered by an API-key signature. */
@@ -34,7 +34,10 @@ export class TokenAuthenticator implements Authenticator {
   }
 }
 
-/** Signs the UTF-8 message bytes with Ed25519 and returns the raw signature (or base64). */
+/**
+ * Signs the UTF-8 message bytes with Ed25519 and returns the raw signature, or a base64 string
+ * (standard or URL-safe; the SDK sends it URL-safe).
+ */
 export type Ed25519Signer = (message: Uint8Array) => Promise<Uint8Array | string>;
 
 /** DER prefix that turns a raw 32-byte Ed25519 seed into a PKCS#8 `PrivateKeyInfo`. */
@@ -93,7 +96,11 @@ export function buildSignatureMessage(timestamp: string, payload: SignaturePaylo
 
 /**
  * API-key authentication (Ed25519). Adds the `Nobitex-Key`, `Nobitex-Timestamp` and
- * `Nobitex-Signature` headers, with `signature = base64(Ed25519(timestamp + method + url + body))`.
+ * `Nobitex-Signature` headers, with
+ * `signature = base64url(Ed25519(timestamp + METHOD + path_with_query + raw_body))`.
+ *
+ * The timestamp is Unix seconds and must be within 30 seconds of the server clock in production,
+ * so keep the host clock synchronised (NTP).
  */
 export class ApiKeyAuthenticator implements Authenticator {
   readonly kind = 'apiKey';
@@ -116,7 +123,8 @@ export class ApiKeyAuthenticator implements Authenticator {
     return {
       'Nobitex-Key': this.#publicKey,
       'Nobitex-Timestamp': timestamp,
-      'Nobitex-Signature': typeof signature === 'string' ? signature : bytesToBase64(signature),
+      'Nobitex-Signature':
+        typeof signature === 'string' ? toBase64Url(signature) : bytesToBase64Url(signature),
     };
   }
 }

@@ -155,7 +155,7 @@ export interface FailedResponse {
 export interface PaginationParams {
   /** 1-based page number. */
   page?: number;
-  /** Items per page (1–100). */
+  /** Items per page (1–100 unless the endpoint documents otherwise). */
   pageSize?: number;
 }
 

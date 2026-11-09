@@ -1,5 +1,6 @@
 import type { Monetary, OrderSide } from '../types/common.js';
 import type { MarketStats, OrderBookLevel } from '../types/market.js';
+import type { OrderStatus, TradeType } from '../types/orders.js';
 
 /** `public:orderbook-{SYMBOL}` message. */
 export interface OrderBookEvent {
@@ -33,7 +34,7 @@ export interface PublicTradeEvent {
 /** `public:market-stats-{SYMBOL}` message. */
 export type MarketStatsEvent = MarketStats;
 
-/** `public:market-stats-all` message, keyed by `"{src}-{dst}"` (e.g. `btc-irt`). */
+/** `public:market-stats-all` message, keyed by `"{src}-{dst}"` (e.g. `btc-rls`, `usdt-rls`). */
 export type AllMarketStatsEvent = Record<string, MarketStats>;
 
 /** `private:orders#{websocketAuthParam}` message. */
@@ -47,17 +48,28 @@ export interface PrivateOrderEvent {
   fee: Monetary;
   filledAmount: Monetary;
   lastFillTime: number | null;
-  marketType: 'Spot' | 'Margin';
+  marketType: TradeType;
   orderId: number;
-  orderType: string;
+  orderType: 'Limit' | 'Market' | 'StopLimit' | 'StopMarket';
   param1: Monetary | null;
   price: Monetary | null;
   side: 'Buy' | 'Sell';
   srcCurrency: string;
-  status: string;
+  status: OrderStatus;
   tradeAmount: Monetary | null;
   tradeId: number | null;
   tradePrice: Monetary | null;
+}
+
+/**
+ * Published on `private:orders#…` when an order is rejected after submission (e.g.
+ * `OverValueOrder`).
+ */
+export interface PrivateOrderFailedEvent {
+  status: 'Failed';
+  code: string | null;
+  message: string | null;
+  clientOrderId: string | null;
 }
 
 /** `private:trades#{websocketAuthParam}` message. */
@@ -66,8 +78,13 @@ export interface PrivateTradeEvent {
   orderId: number;
   srcCurrency: string;
   dstCurrency: string;
-  timestamp: string;
-  type: OrderSide;
+  /** Unix time in milliseconds. */
+  time: number;
+  /** @deprecated ISO-8601 time; use `time`. */
+  timestamp?: string;
+  type: 'Buy' | 'Sell';
+  /** Whether the user's order was the maker. */
+  isMaker: boolean;
   price: Monetary;
   amount: Monetary;
   total: Monetary;
@@ -86,7 +103,7 @@ export type ChannelPayload<C extends string> = C extends `public:orderbook-${str
         : C extends `public:market-stats-${string}`
           ? MarketStatsEvent
           : C extends `private:orders#${string}`
-            ? PrivateOrderEvent
+            ? PrivateOrderEvent | PrivateOrderFailedEvent
             : C extends `private:trades#${string}`
               ? PrivateTradeEvent
               : unknown;

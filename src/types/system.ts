@@ -7,17 +7,17 @@ export interface NetworkOptions {
   coin?: string;
   isDefault: boolean;
   beta?: boolean;
-  addressRegex: string;
+  addressRegex?: string;
   memoRequired?: boolean;
   memoRegex?: string;
   depositEnable: boolean;
   minConfirm: number;
   depositInfo?: Record<string, { depositMin?: Monetary; depositMax?: Monetary }>;
   withdrawEnable: boolean;
-  withdrawIntegerMultiple: Monetary;
-  withdrawFee: Monetary;
-  withdrawMin: Monetary;
-  withdrawMax: Monetary;
+  withdrawIntegerMultiple?: Monetary;
+  withdrawFee?: Monetary;
+  withdrawMin?: Monetary;
+  withdrawMax?: Monetary;
 }
 
 /** Settings of one coin. */
@@ -30,31 +30,37 @@ export interface CoinOptions {
   stdName?: string;
 }
 
-/** Daily/monthly withdraw limits of a user level. */
+/**
+ * Withdraw limits of a user level. The documented example uses `daily`/`monthly`; older
+ * responses use `dailyCoin`, `dailyRial`, `dailySummation` and `monthlySummation`.
+ */
 export interface WithdrawLimit {
-  dailyCoin: Monetary;
-  dailyRial: Monetary;
-  dailySummation: Monetary;
-  monthlySummation: Monetary;
+  daily?: Monetary;
+  monthly?: Monetary;
+  dailyCoin?: Monetary;
+  dailyRial?: Monetary;
+  dailySummation?: Monetary;
+  monthlySummation?: Monetary;
+  [key: string]: Monetary | undefined;
 }
 
 /** `GET /v2/options` — system-wide configuration. */
 export interface SystemOptionsResponse extends OkResponse {
   features: {
-    fcmEnabled: boolean;
+    fcmEnabled?: boolean;
     chat?: string;
     walletsToNet?: boolean;
-    autoKYC: boolean;
-    enabledFeatures: string[];
-    betaFeatures: string[];
+    autoKYC?: boolean;
+    enabledFeatures?: string[];
+    betaFeatures?: string[];
   };
   coins: CoinOptions[];
   nobitex: {
     allCurrencies: string[];
     activeCurrencies: string[];
-    xchangeCurrencies: string[];
+    xchangeCurrencies?: string[];
     topCurrencies: string[];
-    testingCurrencies: string[];
+    testingCurrencies?: string[];
     withdrawLimits: Record<string, WithdrawLimit>;
     /** Minimum order value per quote currency (`rls`, `usdt`, …). */
     minOrders: Record<string, Monetary>;

@@ -5,9 +5,9 @@ export type OrderBookLevel = readonly [price: Monetary, amount: Monetary];
 
 /** Order book of a single market. `asks` are sell orders, `bids` are buy orders. */
 export interface OrderBookSnapshot {
-  /** Unix time in milliseconds. */
-  lastUpdate: number;
-  /** Price of the most recent trade (not included in the `all` response). */
+  /** Unix time in milliseconds (`null` when the book has never been updated). */
+  lastUpdate: number | null;
+  /** Price of the most recent trade. */
   lastTradePrice?: Monetary;
   asks: OrderBookLevel[];
   bids: OrderBookLevel[];
@@ -21,11 +21,11 @@ export interface OrderBookResponse extends OkResponse, OrderBookSnapshot {
 /** `GET /v3/orderbook/all` (keyed by market symbol, `status` stripped by the SDK). */
 export type AllOrderBooks = Record<string, OrderBookSnapshot>;
 
-/** `GET /v2/depth/{symbol}` — aggregated depth chart (experimental). */
+/** `GET /v2/depth/{symbol}` — aggregated depth chart. */
 export interface DepthResponse extends OkResponse {
   /** Unix time in milliseconds (returned as a string by this endpoint). */
-  lastUpdate: string | number;
-  lastTradePrice: Monetary;
+  lastUpdate?: string | number;
+  lastTradePrice?: Monetary;
   asks: OrderBookLevel[];
   bids: OrderBookLevel[];
 }
@@ -47,18 +47,20 @@ export interface PublicTradesResponse extends OkResponse {
 /** 24h statistics of a market. */
 export interface MarketStats {
   isClosed: boolean;
-  bestSell: Monetary;
-  bestBuy: Monetary;
-  volumeSrc: Monetary;
-  volumeDst: Monetary;
-  latest: Monetary;
-  mark?: Monetary;
-  dayLow: Monetary;
-  dayHigh: Monetary;
-  dayOpen: Monetary;
-  dayClose: Monetary;
+  /** Why the market is closed, e.g. `NoData`. */
+  isClosedReason?: string | null;
+  bestSell: Monetary | null;
+  bestBuy: Monetary | null;
+  volumeSrc: Monetary | null;
+  volumeDst: Monetary | null;
+  latest: Monetary | null;
+  mark?: Monetary | null;
+  dayLow: Monetary | null;
+  dayHigh: Monetary | null;
+  dayOpen: Monetary | null;
+  dayClose: Monetary | null;
   /** Percentage change over 24h. */
-  dayChange: Monetary;
+  dayChange: Monetary | null;
 }
 
 /** `GET /market/stats` */
@@ -81,12 +83,13 @@ export interface MarketStatsParams {
 export interface OhlcParams {
   /** Market symbol, e.g. `BTCIRT`. */
   symbol: string;
+  /** Candle size. Minute resolutions (`1`, `5`, `15`, `30`) only cover the last 7 days. */
   resolution: OhlcResolution;
   /** End of the range (Unix seconds or `Date`). */
   to: number | Date;
   /** Start of the range (Unix seconds or `Date`). */
   from?: number | Date;
-  /** Number of candles before `to` (takes precedence over `from`). */
+  /** Number of candles before `to` (takes precedence over `from`; values above 500 are clamped). */
   countback?: number;
   /** Page number — at most 500 candles are returned per page. */
   page?: number;
