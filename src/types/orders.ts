@@ -255,3 +255,58 @@ export interface BatchCancelOrdersResponse extends OkResponse {
 export interface OpenOrdersCountResponse extends OkResponse {
   count: number;
 }
+
+/**
+ * Selects the open order to replace. At least one identifier is required; when both are sent,
+ * `cancelOrderId` wins (with no fallback to `cancelClientOrderId` if it is not found).
+ */
+export type ReplaceOrderTarget =
+  | { cancelOrderId: number; cancelClientOrderId?: string }
+  | { cancelClientOrderId: string; cancelOrderId?: number };
+
+/**
+ * Exit-order configuration of a replacement order. Its shape follows the regular order-creation
+ * rules and is not further documented, so it is sent unchanged.
+ */
+export type ExitOrderParams = Readonly<Record<string, unknown>>;
+
+/** Fields of the new order created by a replacement (the old order's fields are not copied). */
+export interface ReplacementOrderBase {
+  /** Side of the new order. */
+  type: OrderSide;
+  /** Base currency; must match the old order's market. */
+  srcCurrency: Currency;
+  /** Quote currency; must match the old order's market. */
+  dstCurrency: QuoteCurrency | Currency;
+  /**
+   * Full quantity of the new order in `srcCurrency`. Fills of the old order are **not**
+   * subtracted automatically.
+   */
+  amount: MonetaryInput;
+  /** Client id of the **new** order (≤ 32 characters: letters, digits and `-`). */
+  clientOrderId?: string;
+  /** At most one exit-order entry. */
+  exitOrders?: readonly ExitOrderParams[];
+}
+
+/** Parameters for `POST /market/orders/replace` (regular new order). */
+export type ReplaceOrderParams = ReplaceOrderTarget & ReplacementOrderBase & OrderExecutionParams;
+
+/** Parameters for `POST /market/orders/replace` (OCO new order). */
+export type ReplaceOcoOrderParams = ReplaceOrderTarget & ReplacementOrderBase & OcoParams;
+
+/** `POST /market/orders/replace` */
+export interface ReplaceOrderResponse extends OkResponse {
+  /** The old (selected) order, now canceled. */
+  canceledOrder: Order;
+  /** The new order — track it by its new `id`. */
+  order: Order;
+}
+
+/** `POST /market/orders/replace` with `mode: 'oco'`. */
+export interface ReplaceOcoOrderResponse extends OkResponse {
+  /** The selected old order (for an OCO leg, both old legs are canceled). */
+  canceledOrder: Order;
+  /** The two legs of the new OCO order. */
+  orders: Order[];
+}

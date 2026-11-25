@@ -15,6 +15,10 @@ import type {
   OpenOrdersCountResponse,
   OrderLookup,
   OrderResponse,
+  ReplaceOcoOrderParams,
+  ReplaceOcoOrderResponse,
+  ReplaceOrderParams,
+  ReplaceOrderResponse,
   SingleOrderParams,
   TradeTypeParam,
   UpdateOrderStatusParams,
@@ -50,6 +54,46 @@ function buildSpotOrderBody(params: CreateOrderParams): Record<string, unknown> 
     ...buildPriceFields(params),
     ...(params.clientOrderId !== undefined && { clientOrderId: params.clientOrderId }),
     ...(params.pro && { pro: true }),
+  };
+}
+
+/** Builds the body of `POST /market/orders/replace` (validates both the target and the new order). */
+function buildReplaceBody(
+  params: ReplaceOrderParams | ReplaceOcoOrderParams,
+): Record<string, unknown> {
+  const { cancelOrderId, cancelClientOrderId } = params as {
+    cancelOrderId?: unknown;
+    cancelClientOrderId?: unknown;
+  };
+  ensure(
+    cancelOrderId !== undefined || cancelClientOrderId !== undefined,
+    'cancelOrderId',
+    'either "cancelOrderId" or "cancelClientOrderId" is required',
+  );
+  if (cancelOrderId !== undefined) assertPositiveInteger(cancelOrderId, 'cancelOrderId');
+  if (cancelClientOrderId !== undefined) {
+    assertNonEmptyString(cancelClientOrderId, 'cancelClientOrderId');
+    ensure(
+      /^[A-Za-z0-9-]{1,32}$/.test(cancelClientOrderId),
+      'cancelClientOrderId',
+      'must be at most 32 characters: letters, digits and "-"',
+    );
+  }
+  assertOneOf(params.type, 'type', ORDER_SIDES);
+  assertClientOrderId(params.clientOrderId);
+  if (params.exitOrders !== undefined) {
+    const count = arrayLength(params.exitOrders);
+    ensure(count >= 0 && count <= 1, 'exitOrders', 'must be an array with at most one entry');
+  }
+  return {
+    ...(cancelOrderId !== undefined && { cancelOrderId }),
+    ...(cancelClientOrderId !== undefined && { cancelClientOrderId }),
+    type: params.type,
+    ...marketPair(params.srcCurrency, params.dstCurrency),
+    amount: toPositiveMonetaryString(params.amount, 'amount'),
+    ...buildPriceFields(params),
+    ...(params.clientOrderId !== undefined && { clientOrderId: params.clientOrderId }),
+    ...(params.exitOrders !== undefined && { exitOrders: params.exitOrders }),
   };
 }
 
@@ -200,6 +244,48 @@ export class OrdersResource extends Resource {
     }
     return this.request(
       { method: 'POST', path: '/market/orders/update-status', body, idempotent: true },
+      options,
+    );
+  }
+
+  /**
+   * Replaces an open order in one request (`POST /market/orders/replace`): the old order is
+   * canceled and a new order is created in the same market, atomically — if the new order is
+   * rejected, the old order stays untouched. Funds released by the cancellation are available to
+   * the new order. Rate limit: 300 per 10 min (plus the shared order-creation limits). API keys
+   * need the `TRADE` permission.
+   *
+   * - Select the old order with `cancelOrderId` (wins when both are sent) or
+   *   `cancelClientOrderId`.
+   * - Send the **complete** new order: nothing is copied from the old one, and existing fills are
+   *   not subtracted from `amount`.
+   * - The new order gets a **new id**; `clientOrderId` names the new order.
+   *
+   * **Not idempotent and never retried automatically.** After a timeout, check the order state
+   * before retrying: prefer `cancelOrderId` plus a distinct new `clientOrderId`, because reusing
+   * `cancelClientOrderId` as the new `clientOrderId` can make a retry replace the new order.
+   *
+   * @example Move a partially filled 0.01 BTC buy order (0.004 filled) to a new price
+   * const { canceledOrder, order } = await client.orders.replace({
+   *   cancelOrderId: 123456, type: 'buy', srcCurrency: 'btc', dstCurrency: 'usdt',
+   *   amount: '0.006', price: '50100', clientOrderId: 'btc-buy-v2',
+   * });
+   */
+  replace(
+    params: ReplaceOcoOrderParams,
+    options?: RequestOptions,
+  ): Promise<ReplaceOcoOrderResponse>;
+  replace(params: ReplaceOrderParams, options?: RequestOptions): Promise<ReplaceOrderResponse>;
+  replace(
+    params: ReplaceOrderParams | ReplaceOcoOrderParams,
+    options?: RequestOptions,
+  ): Promise<ReplaceOrderResponse | ReplaceOcoOrderResponse>;
+  replace(
+    params: ReplaceOrderParams | ReplaceOcoOrderParams,
+    options?: RequestOptions,
+  ): Promise<ReplaceOrderResponse | ReplaceOcoOrderResponse> {
+    return this.request(
+      { method: 'POST', path: '/market/orders/replace', body: buildReplaceBody(params) },
       options,
     );
   }

@@ -189,3 +189,72 @@ export interface TransferResponse extends OkResponse {
   srcWallet: Wallet;
   dstWallet: Wallet;
 }
+
+/** One of the user's deposit addresses (multiple-deposit-address APIs). */
+export interface DepositAddressRecord {
+  /** Id used by `depositAddresses.updateTitle()`. */
+  id: number;
+  title: string | null;
+  /**
+   * Requested network (`ONE` for Harmony) in `list`/`generate`; the stored source network
+   * (`ETH` for Harmony) in `updateTitle`.
+   */
+  network: string | null;
+  /**
+   * The address. Harmony (`ONE`) addresses are returned in bech32 (`one1…`) form by `list` and
+   * `generate`, or `null` when the conversion fails.
+   */
+  address: string | null;
+  createdAt: ISODateString;
+  /** `true` when the address no longer accepts deposits. */
+  isDisabled: boolean;
+}
+
+/** Parameters for `GET /users/wallets/deposit/address/list`. */
+export interface ListDepositAddressesParams {
+  /** Coin, e.g. `eth` (case-insensitive). */
+  coin: Currency;
+  /** Network, e.g. `ETH` (case-insensitive). Tag/memo networks (XRP, TON) are not supported. */
+  network: Network;
+  /** Order by creation time (default `-created_at`, newest first). */
+  ordering?: 'created_at' | '-created_at';
+  /** `true`: only disabled addresses, `false`: only active ones; omit for both. */
+  isDisabled?: boolean;
+  /** Case-insensitive substring of the title. */
+  search?: string;
+  /** Page number (default 1). */
+  page?: number;
+  /** Addresses per page (default 50). */
+  pageSize?: number;
+}
+
+/** `GET /users/wallets/deposit/address/list` */
+export interface DepositAddressesResponse extends OkResponse, HasNext {
+  addresses: DepositAddressRecord[];
+}
+
+/** Parameters for `POST /users/wallets/deposit/address/generate`. */
+export interface GenerateDepositAddressParams {
+  /** Coin, e.g. `eth` (case-insensitive). */
+  coin: Currency;
+  /**
+   * Network, e.g. `ETH` (case-insensitive). Tag/memo networks (XRP, TON) and Lightning (`BTCLN`)
+   * are not supported.
+   */
+  network: Network;
+  /** Optional title, at most 256 characters after trimming; blank titles are stored as `null`. */
+  title?: string | null;
+}
+
+/** Parameters for `POST /users/wallets/deposit/address/update`. */
+export interface UpdateDepositAddressTitleParams {
+  /** `id` of the address (from `list` or `generate`). */
+  addressId: number;
+  /** New title (≤ 256 characters after trimming); omit, `null` or blank to clear it. */
+  title?: string | null;
+}
+
+/** `POST /users/wallets/deposit/address/generate` and `/update` */
+export interface DepositAddressResponse extends OkResponse {
+  address: DepositAddressRecord;
+}

@@ -12,6 +12,7 @@ import { AccountResource } from './resources/account.js';
 import { AddressBookResource } from './resources/address-book.js';
 import { ApiKeysResource } from './resources/api-keys.js';
 import { AuthResource } from './resources/auth.js';
+import { DepositAddressesResource } from './resources/deposit-addresses.js';
 import { MarginResource } from './resources/margin.js';
 import { MarketResource } from './resources/market.js';
 import { OrdersResource } from './resources/orders.js';
@@ -90,6 +91,8 @@ export class NobitexClient {
   readonly account: AccountResource;
   /** Wallets, balances, transactions, deposits, transfers. */
   readonly wallets: WalletsResource;
+  /** Multiple deposit addresses: list, generate and rename. */
+  readonly depositAddresses: DepositAddressesResource;
   /** Spot orders and trade history. */
   readonly orders: OrdersResource;
   /** Margin markets, orders and positions. */
@@ -131,6 +134,7 @@ export class NobitexClient {
     this.system = new SystemResource(this.#http);
     this.account = new AccountResource(this.#http);
     this.wallets = new WalletsResource(this.#http);
+    this.depositAddresses = new DepositAddressesResource(this.#http);
     this.orders = new OrdersResource(this.#http);
     this.margin = new MarginResource(this.#http);
     this.withdrawals = new WithdrawalsResource(this.#http);
