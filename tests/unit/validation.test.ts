@@ -551,6 +551,178 @@ const cases: Case[] = [
     'from',
   ],
   ['referral link empty agenda', (c) => c.referral.createLink({ agenda: ' ' }), 'agenda'],
+
+  // Order replacement
+  [
+    'replace without a cancellation identifier',
+    (c) =>
+      c.orders.replace({
+        type: 'buy',
+        srcCurrency: 'btc',
+        dstCurrency: 'usdt',
+        amount: '1',
+        price: '1',
+      } as never),
+    'cancelOrderId',
+  ],
+  [
+    'replace with a non-integer cancelOrderId',
+    (c) =>
+      c.orders.replace({
+        cancelOrderId: 1.5,
+        type: 'buy',
+        srcCurrency: 'btc',
+        dstCurrency: 'usdt',
+        amount: '1',
+        price: '1',
+      }),
+    'cancelOrderId',
+  ],
+  [
+    'replace with an invalid cancelClientOrderId',
+    (c) =>
+      c.orders.replace({
+        cancelClientOrderId: 'bad id',
+        type: 'buy',
+        srcCurrency: 'btc',
+        dstCurrency: 'usdt',
+        amount: '1',
+        price: '1',
+      }),
+    'cancelClientOrderId',
+  ],
+  [
+    'replace with an empty cancelClientOrderId',
+    (c) =>
+      c.orders.replace({
+        cancelClientOrderId: '',
+        type: 'buy',
+        srcCurrency: 'btc',
+        dstCurrency: 'usdt',
+        amount: '1',
+        price: '1',
+      }),
+    'cancelClientOrderId',
+  ],
+  [
+    'replace without a side',
+    (c) =>
+      c.orders.replace({
+        cancelOrderId: 1,
+        srcCurrency: 'btc',
+        dstCurrency: 'usdt',
+        amount: '1',
+        price: '1',
+      } as never),
+    'type',
+  ],
+  [
+    'replace limit order without price',
+    (c) =>
+      c.orders.replace({
+        cancelOrderId: 1,
+        type: 'buy',
+        srcCurrency: 'btc',
+        dstCurrency: 'usdt',
+        amount: '1',
+      } as never),
+    'price',
+  ],
+  [
+    'replace with two exit orders',
+    (c) =>
+      c.orders.replace({
+        cancelOrderId: 1,
+        type: 'buy',
+        srcCurrency: 'btc',
+        dstCurrency: 'usdt',
+        amount: '1',
+        price: '1',
+        exitOrders: [{}, {}],
+      }),
+    'exitOrders',
+  ],
+  [
+    'replace with non-array exit orders',
+    (c) =>
+      c.orders.replace({
+        cancelOrderId: 1,
+        type: 'buy',
+        srcCurrency: 'btc',
+        dstCurrency: 'usdt',
+        amount: '1',
+        price: '1',
+        exitOrders: {} as never,
+      }),
+    'exitOrders',
+  ],
+  [
+    'replace with an invalid new clientOrderId',
+    (c) =>
+      c.orders.replace({
+        cancelOrderId: 1,
+        type: 'buy',
+        srcCurrency: 'btc',
+        dstCurrency: 'usdt',
+        amount: '1',
+        price: '1',
+        clientOrderId: 'a'.repeat(33),
+      }),
+    'clientOrderId',
+  ],
+
+  // Deposit addresses
+  [
+    'deposit list without coin',
+    (c) => c.depositAddresses.list({ coin: '', network: 'ETH' }),
+    'coin',
+  ],
+  [
+    'deposit list without network',
+    (c) => c.depositAddresses.list({ coin: 'eth', network: ' ' }),
+    'network',
+  ],
+  [
+    'deposit list bad ordering',
+    (c) =>
+      c.depositAddresses.list({ coin: 'eth', network: 'ETH', ordering: 'title' as 'created_at' }),
+    'ordering',
+  ],
+  [
+    'deposit list non-boolean isDisabled',
+    (c) => c.depositAddresses.list({ coin: 'eth', network: 'ETH', isDisabled: 'no' as never }),
+    'isDisabled',
+  ],
+  [
+    'deposit list page 0',
+    (c) => c.depositAddresses.list({ coin: 'eth', network: 'ETH', page: 0 }),
+    'page',
+  ],
+  [
+    'deposit list pageSize 1.5',
+    (c) => c.depositAddresses.list({ coin: 'eth', network: 'ETH', pageSize: 1.5 }),
+    'pageSize',
+  ],
+  [
+    'generate deposit address title > 256',
+    (c) => c.depositAddresses.generate({ coin: 'eth', network: 'ETH', title: 'x'.repeat(257) }),
+    'title',
+  ],
+  [
+    'generate deposit address non-string title',
+    (c) => c.depositAddresses.generate({ coin: 'eth', network: 'ETH', title: 5 as never }),
+    'title',
+  ],
+  [
+    'generate deposit address without network',
+    (c) => c.depositAddresses.generate({ coin: 'eth', network: '' }),
+    'network',
+  ],
+  [
+    'update deposit title bad id',
+    (c) => c.depositAddresses.updateTitle({ addressId: 0, title: 'x' }),
+    'addressId',
+  ],
 ];
 
 describe('local input validation', () => {

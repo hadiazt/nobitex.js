@@ -4,6 +4,21 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [1.2.0] - 2026-11-25
+
+### Added
+
+- `orders.replace()` (`POST /market/orders/replace`, announced 2026-11-23): cancels an open spot
+  order and creates a new one atomically. Select the old order by `cancelOrderId` or
+  `cancelClientOrderId`, and send the complete new order (limit, market, stop, OCO, `exitOrders`).
+  Typed overloads return `{ canceledOrder, order }` or `{ canceledOrder, orders }` for OCO.
+  Never retried automatically, because replacement is not idempotent.
+- `client.depositAddresses` for the multiple-deposit-address APIs (Aban 1405): `list()`,
+  `generate()` (a new address on every call, never retried) and `updateTitle()`.
+- Error codes `OrderNotFound`, `OrderNotCancellable`, `InvalidStopPrice`, `NetworkNotSupported`,
+  `InvalidNetwork`, `DepositNotSupported`, `DepositNotAvailable`, `NetworkCoinPairNotFound`,
+  `NoConfirmedWalletDepositLimitation`, `PleaseUpdateApp` and `InternalException`.
+
 ## [1.1.0] - 2026-11-09
 
 Synchronised with the updated official documentation (OpenAPI files at

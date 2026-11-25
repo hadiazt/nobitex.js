@@ -66,6 +66,7 @@ export { toCandles, type MarketResource } from './resources/market.js';
 export type { SystemResource } from './resources/system.js';
 export type { AccountResource } from './resources/account.js';
 export type { WalletsResource } from './resources/wallets.js';
+export type { DepositAddressesResource } from './resources/deposit-addresses.js';
 export type { OrdersResource } from './resources/orders.js';
 export type { MarginResource } from './resources/margin.js';
 export type { RialWithdrawalsResource, WithdrawalsResource } from './resources/withdrawals.js';

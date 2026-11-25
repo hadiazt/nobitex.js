@@ -97,3 +97,50 @@ describe('auth.login deprecation', () => {
     expect(calls[0]![1]).toMatchObject({ type: 'DeprecationWarning' });
   });
 });
+
+describe('non-idempotent endpoints added in Aban/Azar 1405', () => {
+  it('never retries orders.replace or depositAddresses.generate, even on 5xx', async () => {
+    const { client, requests } = createTestClient(
+      { token: 't', retry: { maxRetries: 3, baseDelayMs: 0, maxDelayMs: 0 } },
+      () => jsonResponse({ status: 'failed', code: 'InternalException' }, 500),
+    );
+    await expect(
+      client.orders.replace({
+        cancelOrderId: 1,
+        type: 'buy',
+        srcCurrency: 'btc',
+        dstCurrency: 'usdt',
+        amount: '1',
+        price: '1',
+      }),
+    ).rejects.toBeInstanceOf(NobitexApiError);
+    await expect(
+      client.depositAddresses.generate({ coin: 'eth', network: 'ETH' }),
+    ).rejects.toBeInstanceOf(NobitexApiError);
+    expect(requests).toHaveLength(2);
+  });
+
+  it('keeps the code and echoed clientOrderId of a failed replacement', async () => {
+    const body = {
+      status: 'failed',
+      code: 'OrderNotFound',
+      message: 'Order to cancel is not found in this market',
+      clientOrderId: 'btc-buy-v2',
+    };
+    const { client } = createTestClient({ token: 't' }, () => jsonResponse(body));
+    const error = await client.orders
+      .replace({
+        cancelOrderId: 1,
+        type: 'buy',
+        srcCurrency: 'btc',
+        dstCurrency: 'usdt',
+        amount: '1',
+        price: '1',
+        clientOrderId: 'btc-buy-v2',
+      })
+      .catch((e: unknown) => e);
+    expect(error).toBeInstanceOf(NobitexApiError);
+    expect((error as NobitexApiError).code).toBe('OrderNotFound');
+    expect((error as NobitexApiError).body).toEqual(body);
+  });
+});

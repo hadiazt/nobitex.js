@@ -11,6 +11,8 @@ import type {
   OrderResponse,
   PrivateOrderEvent,
   PrivateOrderFailedEvent,
+  ReplaceOcoOrderResponse,
+  ReplaceOrderResponse,
 } from '../../src/index.js';
 import { type channels } from '../../src/index.js';
 
@@ -40,6 +42,39 @@ describe('order creation overloads', () => {
         stopLimitPrice: '3',
       }),
     ).resolves.toEqualTypeOf<OcoOrderResponse>();
+  });
+
+  it('types order replacement like order creation', () => {
+    expectTypeOf(
+      client.orders.replace({
+        cancelOrderId: 1,
+        type: 'buy',
+        srcCurrency: 'btc',
+        dstCurrency: 'usdt',
+        amount: '1',
+        price: '1',
+      }),
+    ).resolves.toEqualTypeOf<ReplaceOrderResponse>();
+
+    expectTypeOf(
+      client.orders.replace({
+        cancelClientOrderId: 'old',
+        type: 'buy',
+        srcCurrency: 'btc',
+        dstCurrency: 'usdt',
+        amount: '1',
+        mode: 'oco',
+        price: '1',
+        stopPrice: '2',
+        stopLimitPrice: '3',
+      }),
+    ).resolves.toEqualTypeOf<ReplaceOcoOrderResponse>();
+
+    // A cancellation identifier is required.
+    void client.orders.replace(
+      // @ts-expect-error neither cancelOrderId nor cancelClientOrderId
+      { type: 'buy', srcCurrency: 'btc', dstCurrency: 'usdt', amount: '1', price: '1' },
+    );
   });
 
   it('rejects invalid parameter combinations at compile time', () => {

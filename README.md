@@ -230,9 +230,22 @@ const { orders } = await client.orders.create({
   stopLimitPrice: '42715',
 }); // OCO returns both linked orders
 
-await client.orders.getStatus({ clientOrderId: 'my-order-1' });
+// Replace an open order in one atomic request: the old order is canceled and the new one is
+// created together (if the new order is rejected, the old one stays). Send the complete new
+// order; it gets a new id. Never retried automatically: check the order state after a timeout.
+const { canceledOrder, order: replacement } = await client.orders.replace({
+  cancelOrderId: order.id,
+  type: 'buy',
+  srcCurrency: 'btc',
+  dstCurrency: 'rls',
+  amount: '0.001',
+  price: '5050000000',
+  clientOrderId: 'my-order-2',
+});
+
+await client.orders.getStatus({ clientOrderId: 'my-order-2' });
 await client.orders.list({ status: 'open', details: 2 });
-await client.orders.cancel(order.id);
+await client.orders.cancel(replacement.id);
 await client.orders.cancelBulk({ srcCurrency: 'btc', dstCurrency: 'rls', hours: 1 });
 await client.orders.listTrades({ srcCurrency: 'btc', dstCurrency: 'rls' });
 ```
@@ -436,6 +449,19 @@ Every method takes an optional last argument `{ signal?, timeout?, headers? }`. 
 </details>
 
 <details>
+<summary><b>Deposit addresses</b>: <code>client.depositAddresses</code> 🔐</summary>
+
+Several deposit addresses per coin and network (tag/memo networks such as XRP and TON are not supported). API keys need the `DEPOSIT` permission.
+
+| Method                                                                       | Endpoint                                       |
+| ---------------------------------------------------------------------------- | ---------------------------------------------- |
+| `list({ coin, network, ordering?, isDisabled?, search?, page?, pageSize? })` | `GET /users/wallets/deposit/address/list`      |
+| `generate({ coin, network, title? })` (creates a new address on every call)  | `POST /users/wallets/deposit/address/generate` |
+| `updateTitle({ addressId, title? })`                                         | `POST /users/wallets/deposit/address/update`   |
+
+</details>
+
+<details>
 <summary><b>Spot orders</b>: <code>client.orders</code> 🔐</summary>
 
 | Method                                                                                                    | Endpoint                            |
@@ -443,6 +469,7 @@ Every method takes an optional last argument `{ signal?, timeout?, headers? }`. 
 | `create(params)` (limit, market, stop_limit, stop_market, OCO)                                            | `POST /market/orders/add`           |
 | `getStatus({ id } \| { clientOrderId })`                                                                  | `POST /market/orders/status`        |
 | `list({ status?, type?, execution?, tradeType?, srcCurrency?, dstCurrency?, details?, fromId?, order? })` | `GET /market/orders/list`           |
+| `replace({ cancelOrderId \| cancelClientOrderId, ...newOrder })` (atomic cancel + create)                 | `POST /market/orders/replace`       |
 | `updateStatus({ order \| clientOrderId, status: 'canceled' })`                                            | `POST /market/orders/update-status` |
 | `cancel(id \| { clientOrderId })`                                                                         | `POST /market/orders/update-status` |
 | `cancelBulk({ hours?, execution?, tradeType?, srcCurrency?, dstCurrency? })` (orders older than `hours`)  | `POST /market/orders/cancel-old`    |
